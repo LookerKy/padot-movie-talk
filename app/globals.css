@@ -1,15 +1,53 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@plugin "@tailwindcss/typography";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-padot-blue: #8ebde6;
+  --color-padot-blue-50: #f4f8fc;
+  --color-padot-blue-100: #e6f0f9;
+  --color-padot-blue-200: #cce0f3;
+  --color-padot-blue-300: #a3c9ea;
+  --color-padot-blue-400: #8ebde6;
+  --color-padot-blue-500: #5fa0d6;
+  --color-padot-blue-600: #4680b5;
+  --color-padot-blue-700: #386794;
+  --color-padot-blue-800: #30567a;
+  --color-padot-blue-900: #294865;
+  --color-padot-blue-950: #1a2d42;
+  --font-sans: var(--font-cookie-run), ui-sans-serif, system-ui, sans-serif;
+
+
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +60,26 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-cookie-run), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  @apply rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }

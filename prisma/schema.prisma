@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  username  String   @unique
+  password  String
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reviews   Review[] @relation("UserReviews")
+
+  @@map("users")
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  title        String
+  director     String?
+  posterUrl    String?  @map("poster_url") // Changed from posterPath to posterUrl to match mock data
+  tmdbId       Int?     @map("tmdb_id")
+  rating       Float    // 0.5 to 5.0
+  oneLiner     String   @map("one_liner")
+  content      String   @db.Text
+  watchedAt    DateTime @default(now()) @map("watched_at")
+  isMustWatch  Boolean  @default(false) @map("is_must_watch") // Nano Banana Badge
+  
+  authorId     String   @map("author_id")
+  author       User     @relation("UserReviews", fields: [authorId], references: [id])
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  tags         Tag[]    @relation("ReviewTags")
+
+  @@map("reviews")
+}
+
+model Tag {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  color   String?  // Hex color code
+  reviews Review[] @relation("ReviewTags")
+
+  @@map("tags")
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  title       String
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  type        String   @default("SCREENING") // "SCREENING" or "WATCHED"
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("calendar_events")
+}

@@ -1,0 +1,639 @@
+"use client"
+
+import React, { useCallback, useEffect, useState } from "react"
+import { useEditor, EditorContent } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import Placeholder from "@tiptap/extension-placeholder"
+import { TextStyle } from "@tiptap/extension-text-style"
+import UnderlineExtension from "@tiptap/extension-underline"
+import TextAlign from "@tiptap/extension-text-align"
+import { FontSize } from "./extensions/font-size"
+import { PreserveMarks } from "./extensions/preserve-marks"
+
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import {
+    Bold,
+    Italic,
+    Underline,
+    List,
+    ListOrdered,
+    Quote,
+    Heading1,
+    Heading2,
+    Heading3,
+    Link2,
+    AlignLeft,
+    AlignCenter,
+    AlignRight,
+    Sparkles,
+    Type,
+    Minus,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+interface ToolbarButtonProps {
+    onClick: () => void
+    isActive?: boolean
+    children: React.ReactNode
+    title: string
+}
+
+const ToolbarButton = ({ onClick, isActive, children, title }: ToolbarButtonProps) => (
+    <Button
+        variant="ghost"
+        size="sm"
+        onClick={(e) => {
+            e.preventDefault() // Prevent focus loss
+            onClick()
+        }}
+        className={cn(
+            "h-9 w-9 p-0 transition-all duration-300 hover:scale-105",
+            "bg-white/10 backdrop-blur-md border border-white/20 rounded-xl",
+            "hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:shadow-purple-500/20",
+            "group relative overflow-hidden",
+            isActive && "bg-purple-500/30 text-white border-purple-400/50 shadow-lg shadow-purple-500/30"
+        )}
+        title={title}
+    >
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+        <div className="relative z-10 text-white/90 group-hover:text-white">{children}</div>
+    </Button>
+)
+
+interface GlassTiptapEditorProps {
+    content: string
+    onChange: (content: string) => void
+}
+
+const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEditorProps) => {
+    const [activeFontSize, setActiveFontSize] = useState("18px")
+    // 사용자가 마지막으로 "설정한" 폰트 사이즈 (구조 변경 시 복원용)
+    const [userSetFontSize, setUserSetFontSize] = useState("18px")
+    // 트랜잭션 핸들러 내에서 최신 state 접근을 위한 ref
+    const userSetFontSizeRef = React.useRef("18px")
+    // 트랜잭션 간 폰트 사이즈 추적 (리스트 변환 시 마크 소실 방지용)
+    const lastKnownFontSizeRef = React.useRef("18px")
+
+    // 플랫폼 감지 (Mac 여부)
+    const [isMac, setIsMac] = useState(false)
+
+    useEffect(() => {
+        setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0)
+    }, [])
+
+    const modifier = isMac ? "⌘" : "Ctrl"
+    const modifierKey = isMac ? "Cmd" : "Ctrl"
+
+    const editor = useEditor({
+        extensions: [
+            StarterKit.configure({
+                heading: {
+                    levels: [1, 2, 3],
+                },
+                bulletList: {
+                    keepMarks: true,
+                    keepAttributes: false,
+                },
+                orderedList: {
+                    keepMarks: true,
+                    keepAttributes: false,
+                },
+            }),
+            Placeholder.configure({
+                placeholder: " ",
+                emptyEditorClass:
+                    "before:content-[attr(data-placeholder)] before:text-white/40 before:float-left before:pointer-events-none",
+            }),
+            TextStyle,
+            FontSize,
+            UnderlineExtension,
+            TextAlign.configure({
+                types: ['heading', 'paragraph', 'bulletList', 'orderedList'],
+            }),
+            PreserveMarks, // Preserve font size when exiting lists
+        ],
+        content: initialContent,
+        editorProps: {
+            attributes: {
+                class: cn(
+                    "min-h-[500px] p-8 focus:outline-none relative z-10",
+                    "prose prose-lg max-w-none font-sans",
+                    "transition-all duration-300",
+                    "text-white/95 leading-relaxed",
+                    "selection:bg-purple-500/30 selection:text-white",
+                    "[&>h1]:text-4xl [&>h1]:font-bold [&>h1]:text-white [&>h1]:mb-6 [&>h1]:mt-8",
+                    "[&>h2]:text-3xl [&>h2]:font-semibold [&>h2]:text-white/95 [&>h2]:mb-4 [&>h2]:mt-6",
+                    "[&>h3]:text-2xl [&>h3]:font-medium [&>h3]:text-white/90 [&>h3]:mb-3 [&>h3]:mt-5",
+                    "[&>p]:mb-4 [&>p]:leading-relaxed [&>p]:text-white/90",
+                    "[&>ul]:mb-6 [&>ul]:text-white/90",
+                    "[&>ol]:mb-6 [&>ol]:text-white/90",
+                    // List styles are handled by standard CSS inheritance usually, 
+                    // but we can add specific padding if needed. Tiptap usually nests lists properly.
+                    "[&>ul]:pl-6",
+                    "[&>ol]:pl-6",
+                    "[&_li]:mb-2 [&_li]:text-white/90",
+                    "[&>blockquote]:border-l-4 [&>blockquote]:border-purple-400 [&>blockquote]:pl-6 [&>blockquote]:py-3 [&>blockquote]:italic [&>blockquote]:text-white/80 [&>blockquote]:bg-purple-500/10 [&>blockquote]:backdrop-blur-sm [&>blockquote]:rounded-r-xl [&>blockquote]:my-6",
+                    "[&>pre]:bg-black/30 [&>pre]:backdrop-blur-sm [&>pre]:p-6 [&>pre]:rounded-xl [&>pre]:font-mono [&>pre]:text-sm [&>pre]:text-green-300 [&>pre]:overflow-x-auto [&>pre]:border [&>pre]:border-white/10",
+                    "[&>code]:bg-purple-500/20 [&>code]:px-2 [&>code]:py-1 [&>code]:rounded [&>code]:text-sm [&>code]:font-mono [&>code]:text-purple-200",
+                    "[&_a]:text-purple-300 [&_a]:underline [&_a]:decoration-purple-300/50 [&_a]:underline-offset-2",
+                    "[&_strong]:!text-white [&_b]:!text-white", // Force Bold white
+                    "[&_li::marker]:!text-white/90", // Force marker white
+                    "[&_li]:!text-white/90", // Force list text white
+
+                    "hover:[&_a]:decoration-purple-300 [&_a]:transition-colors"
+                ),
+            },
+        },
+        // Use onTransaction to catch all state changes including stored marks
+        onTransaction: ({ editor }) => {
+            const attrs = editor.getAttributes('textStyle');
+
+            // 구조적 블록(헤더, 인용구)일 때는 activeFontSize를 업데이트하지 않음 (드롭다운 표시 유지)
+            // 리스트는 내부 텍스트의 폰트 사이즈를 따르도록 허용
+            const isInStructuralBlock = editor.isActive('heading') ||
+                editor.isActive('blockquote');
+
+            if (!isInStructuralBlock) {
+                // 리스트 내부여도 텍스트 스타일이 있으면 그것을 표시
+                const currentSize = attrs.fontSize || '18px';
+                setActiveFontSize(currentSize);
+
+                // 유효한 폰트 사이즈가 감지되면 Ref 업데이트
+                if (attrs.fontSize) {
+                    lastKnownFontSizeRef.current = attrs.fontSize;
+                }
+            } else {
+                // 구조적 블록 내부 (헤더 등)에서도 폰트 사이즈가 있다면 추적
+                if (attrs.fontSize) {
+                    lastKnownFontSizeRef.current = attrs.fontSize;
+                }
+            }
+
+            // 🚨 리스트 입력 규칙(Input Rule) 대응:
+            // 마크다운(- space)으로 리스트 생성 시 마크가 소실되는 현상 감지 및 복구
+            const isInList = editor.isActive('bulletList') || editor.isActive('orderedList');
+            if (isInList && !attrs.fontSize) {
+                const targetSize = lastKnownFontSizeRef.current;
+
+                // 현재 폰트가 없고, 이전 폰트가 기본값이 아닐 때 복원 시도
+                if (targetSize && targetSize !== '18px') {
+                    // 무한 루프 방지 및 안전한 실행을 위해 setTimeout 사용
+                    setTimeout(() => {
+                        if (editor.isDestroyed || editor.isActive('heading')) return; // 헤더는 제외
+
+                        // 다시 한 번 확인 (사용자가 지웠을 수도 있으므로)
+                        const currentAttrs = editor.getAttributes('textStyle');
+                        if (!currentAttrs.fontSize) {
+                            editor.chain()
+                                .focus()
+                                .setMark('textStyle', { fontSize: targetSize })
+                                .run();
+                        }
+                    }, 0);
+                }
+            }
+
+            // 🚨 Sticky Font Size Logic (빈 줄 클릭 시 폰트 유지)
+            // 커서가 빈 줄(내용 없음)로 이동했을 때, 사용자가 설정한 폰트 사이즈(예: 24px)를 강제 적용
+            const { selection } = editor.state;
+            const { $from } = selection;
+            const isNodeEmpty = $from.parent.content.size === 0;
+            const isDefaultNode = $from.parent.type.name === 'paragraph';
+
+            if (selection.empty && isNodeEmpty && isDefaultNode) {
+                const currentFontSize = attrs.fontSize;
+                const userPreferredSize = userSetFontSizeRef.current;
+
+                // 현재 폰트 사이즈가 없고(기본 18px 상태), 사용자가 설정한 폰트가 18px이 아닐 때
+                if (!currentFontSize && userPreferredSize && userPreferredSize !== '18px') {
+                    // 즉시 마크 적용 (setTimeout 없이, 다음 입력부터 적용되도록)
+                    // 주의: onTransaction 내에서 직접 dispatch하면 루프 위험이 있으므로
+                    // setTimeout을 사용하여 비동기로 처리
+                    setTimeout(() => {
+                        if (editor.isDestroyed) return;
+
+                        // 다시 확인 (상태가 변했을 수 있음)
+                        const currentAttrs = editor.getAttributes('textStyle');
+                        const isStillEmpty = editor.state.selection.$from.parent.content.size === 0;
+
+                        if (!currentAttrs.fontSize && isStillEmpty) {
+                            editor.chain()
+                                .setMark('textStyle', { fontSize: userPreferredSize })
+                                .run();
+                        }
+                    }, 0);
+                }
+            }
+
+            onChange(editor.getHTML())
+        },
+        immediatelyRender: false
+    })
+
+    const fontSizes = [
+        { label: "18px", value: "18px" },
+        { label: "20px", value: "20px" },
+        { label: "22px", value: "22px" },
+        { label: "24px", value: "24px" },
+        { label: "32px", value: "32px" },
+        { label: "40px", value: "40px" },
+    ]
+
+    // 🔧 공통 마크 보존 래퍼 함수
+    // 구조 변경 시 fontSize와 textAlign을 자동으로 보존
+    const withMarkPreservation = useCallback((structuralChange: () => void) => {
+        if (!editor) return
+
+        // 1. 현재 스타일 캡처
+        // userSetFontSize: 사용자가 명시적으로 설정한 폰트 (빈 블록 문제 해결)
+        const sizeToRestore = userSetFontSize;
+        const currentTextAlign = editor.isActive({ textAlign: 'center' }) ? 'center'
+            : editor.isActive({ textAlign: 'right' }) ? 'right'
+                : 'left';
+
+        // 2. 구조 변경 실행
+        structuralChange()
+
+        // 3. 비동기 마크 복원
+        setTimeout(() => {
+            if (!editor || editor.isDestroyed) return;
+
+            const { from, to } = editor.state.selection;
+
+            editor.chain()
+                .focus()
+                .selectParentNode() // 블록 전체 선택
+                .setFontSize(sizeToRestore) // 폰트 사이즈 복원
+                .setTextAlign(currentTextAlign) // 정렬 복원
+                .setTextSelection({ from, to }) // 커서 위치 복원
+                .run()
+        }, 10)
+    }, [editor, userSetFontSize])
+
+    const setFontSize = (size: string) => {
+        // 사용자가 설정한 폰트 사이즈 저장
+        setUserSetFontSize(size)
+        userSetFontSizeRef.current = size
+
+        // Use setTimeout to ensure editor focus happens after Dropdown interaction closes
+        setTimeout(() => {
+            editor?.chain().focus().setFontSize(size).run()
+        }, 0)
+    }
+
+    const setLink = useCallback(() => {
+        const previousUrl = editor?.getAttributes("link").href
+        const url = window.prompt("URL", previousUrl)
+
+        if (url === null) {
+            return
+        }
+
+        if (url === "") {
+            editor?.chain().focus().extendMarkRange("link").unsetLink().run()
+            return
+        }
+
+        editor?.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
+    }, [editor])
+
+    // 제목 토글 (제목 자체 스타일 우선)
+    const toggleHeading = useCallback((level: 1 | 2 | 3) => {
+        editor?.chain().focus().toggleHeading({ level }).run()
+    }, [editor])
+
+    // 인용구 토글 (마크 보존)
+    const toggleBlockquote = useCallback(() => {
+        if (!editor) return
+
+        // 현재 폰트 사이즈와 정렬 캡처 (실제 적용된 값)
+        const currentFontSize = editor.getAttributes('textStyle').fontSize || userSetFontSize;
+        const currentTextAlign = editor.isActive({ textAlign: 'center' }) ? 'center'
+            : editor.isActive({ textAlign: 'right' }) ? 'right' : 'left';
+
+        // 현재 선택 범위 저장
+        const { from, to } = editor.state.selection;
+        const hasSelection = from !== to;
+
+        // 마크 먼저 설정
+        const chain = editor.chain().focus();
+
+        // 선택된 텍스트가 있으면 전체 선택, 없으면 현재 줄 선택
+        if (!hasSelection) {
+            const { $from } = editor.state.selection;
+            chain.setTextSelection({ from: $from.start(), to: $from.end() });
+        }
+
+        // 마크 먼저 설정
+        chain
+            .setFontSize(currentFontSize)
+            .setTextAlign(currentTextAlign)
+            .run();
+
+        // 인용구 토글
+        setTimeout(() => {
+            if (!editor || editor.isDestroyed) return;
+            editor.chain().focus().toggleBlockquote().run()
+        }, 10)
+    }, [editor, userSetFontSize])
+
+    // 구분선 삽입 (마크 보존)
+    const insertDivider = useCallback(() => {
+        if (!editor) return
+
+        // 현재 폰트 사이즈와 정렬 캡처
+        const currentFontSize = editor.getAttributes('textStyle').fontSize || userSetFontSize;
+        const currentTextAlign = editor.isActive({ textAlign: 'center' }) ? 'center'
+            : editor.isActive({ textAlign: 'right' }) ? 'right' : 'left';
+
+        let chain = editor.chain().focus()
+
+        // 리스트 안에 있으면 먼저 빠져나오기
+        if (editor.isActive('bulletList') || editor.isActive('orderedList')) {
+            chain = chain.liftListItem('listItem')
+        }
+
+        // 구분선 삽입
+        chain.setHorizontalRule().run()
+
+        // 마크 복원
+        setTimeout(() => {
+            if (!editor || editor.isDestroyed) return;
+            editor.chain()
+                .focus()
+                .setFontSize(currentFontSize)
+                .setTextAlign(currentTextAlign)
+                .run()
+        }, 10)
+    }, [editor, userSetFontSize])
+
+    // 리스트 토글 (keepMarks 옵션으로 자동 보존)
+    const toggleList = useCallback((type: 'bulletList' | 'orderedList') => {
+        if (!editor) return
+
+        // 현재 폰트 사이즈 캡처
+        const currentFontSize = editor.getAttributes('textStyle').fontSize || userSetFontSize;
+
+        // 체인 시작
+        let chain = editor.chain().focus();
+
+        if (type === 'bulletList') {
+            chain = chain.toggleBulletList();
+        } else {
+            chain = chain.toggleOrderedList();
+        }
+
+        // 리스트 토글 후 폰트 사이즈 재적용
+        chain.command(({ tr, state, dispatch }) => {
+            if (dispatch) {
+                const { selection } = state;
+                // 현재 선택된 블록(리스트 아이템)의 텍스트에 폰트 사이즈 적용
+                tr.addMark(
+                    selection.from,
+                    selection.to,
+                    state.schema.marks.textStyle.create({ fontSize: currentFontSize })
+                );
+            }
+            return true;
+        }).run();
+
+    }, [editor, userSetFontSize])
+
+    // activeFontSize 변경 시 userSetFontSize 자동 업데이트
+    // (일반 텍스트일 때만 - 헤더/리스트/인용구는 제외)
+    useEffect(() => {
+        if (editor && !editor.isDestroyed) {
+            // 구조적 블록(헤더, 인용구)이 아닐 때만 업데이트
+            // 리스트는 허용
+            const isInStructuralBlock = editor.isActive('heading') ||
+                editor.isActive('blockquote');
+
+            if (!isInStructuralBlock && activeFontSize) {
+                setUserSetFontSize(activeFontSize);
+                userSetFontSizeRef.current = activeFontSize;
+            }
+
+            // editor.storage에 저장 (PreserveMarks extension에서 접근)
+            (editor.storage as any).userSetFontSize = userSetFontSize;
+        }
+    }, [editor, activeFontSize, userSetFontSize])
+
+    if (!editor) {
+        return null
+    }
+
+    // Calculate words and characters
+    // Manual count using editor.getText() since CharacterCount extension is optional
+    const contentText = editor.getText();
+    const wordCount = contentText.split(/\s+/).filter(Boolean).length;
+    const charCount = contentText.length;
+
+    return (
+        <div className="relative w-full">
+            <div className="w-full bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl shadow-black/40 overflow-hidden relative z-10">
+                {/* Subtle inner glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-purple-500/5 rounded-3xl pointer-events-none" />
+
+                <div className="flex flex-wrap items-center gap-2 p-4 md:p-6 bg-white/5 backdrop-blur-xl border-b border-white/10 relative">
+                    <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2 mr-4 hidden md:flex">
+                            <div className="p-2 bg-purple-500/20 backdrop-blur-sm rounded-xl border border-purple-400/30">
+                                <Sparkles className="h-4 w-4 text-purple-300" />
+                            </div>
+                        </div>
+
+                        {/* Font Size Button */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-9 gap-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl hover:bg-white/20 text-white/90"
+                                >
+                                    <Type className="h-4 w-4" />
+                                    <span className="text-xs">{activeFontSize}</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                onCloseAutoFocus={(e) => e.preventDefault()}
+                            >
+                                {fontSizes.map(({ label, value }) => (
+                                    <DropdownMenuItem
+                                        key={value}
+                                        onSelect={() => {
+                                            setFontSize(value)
+                                        }}
+                                    >
+                                        {label}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+
+                        <ToolbarButton
+                            onClick={() => toggleHeading(1)}
+                            isActive={editor.isActive("heading", { level: 1 })}
+                            title="Heading 1"
+                        >
+                            <Heading1 className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={() => toggleHeading(2)}
+                            isActive={editor.isActive("heading", { level: 2 })}
+                            title="Heading 2"
+                        >
+                            <Heading2 className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={() => toggleHeading(3)}
+                            isActive={editor.isActive("heading", { level: 3 })}
+                            title="Heading 3"
+                        >
+                            <Heading3 className="h-4 w-4" />
+                        </ToolbarButton>
+                    </div>
+
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+
+                    <div className="flex items-center gap-1">
+                        <ToolbarButton
+                            onClick={() => editor.chain().focus().toggleBold().run()}
+                            isActive={editor.isActive("bold")}
+                            title={`Bold (${modifierKey}+B)`}
+                        >
+                            <Bold className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={() => editor.chain().focus().toggleItalic().run()}
+                            isActive={editor.isActive("italic")}
+                            title={`Italic (${modifierKey}+I)`}
+                        >
+                            <Italic className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={() => editor.chain().focus().toggleUnderline().run()}
+                            isActive={editor.isActive("underline")}
+                            title={`Underline (${modifierKey}+U)`}
+                        >
+                            <Underline className="h-4 w-4" />
+                        </ToolbarButton>
+                    </div>
+
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+
+                    <div className="flex items-center gap-1">
+                        <ToolbarButton
+                            onClick={() => toggleList('bulletList')}
+                            isActive={editor.isActive("bulletList")}
+                            title="Bullet List"
+                        >
+                            <List className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={() => toggleList('orderedList')}
+                            isActive={editor.isActive("orderedList")}
+                            title="Numbered List"
+                        >
+                            <ListOrdered className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={toggleBlockquote}
+                            isActive={editor.isActive("blockquote")}
+                            title="Quote"
+                        >
+                            <Quote className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={insertDivider}
+                            title="Divider"
+                        >
+                            <Minus className="h-4 w-4" />
+                        </ToolbarButton>
+                    </div>
+
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+
+                    <div className="flex items-center gap-1">
+                        <ToolbarButton
+                            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+                            isActive={editor.isActive({ textAlign: "left" })}
+                            title="Align Left"
+                        >
+                            <AlignLeft className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+                            isActive={editor.isActive({ textAlign: "center" })}
+                            title="Align Center"
+                        >
+                            <AlignCenter className="h-4 w-4" />
+                        </ToolbarButton>
+                        <ToolbarButton
+                            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+                            isActive={editor.isActive({ textAlign: "right" })}
+                            title="Align Right"
+                        >
+                            <AlignRight className="h-4 w-4" />
+                        </ToolbarButton>
+                    </div>
+
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+
+                    <div className="flex items-center gap-1">
+                        <ToolbarButton onClick={setLink} isActive={editor.isActive("link")} title="Insert Link">
+                            <Link2 className="h-4 w-4" />
+                        </ToolbarButton>
+                        {/* <ToolbarButton
+                            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                            isActive={editor.isActive("codeBlock")}
+                            title="Code Block"
+                        >
+                            <Code2 className="h-4 w-4" />
+                        </ToolbarButton> */}
+                    </div>
+                </div>
+
+                <div className="relative">
+                    <EditorContent editor={editor} />
+                </div>
+
+                <div className="flex items-center justify-between px-8 py-6 bg-white/5 backdrop-blur-xl border-t border-white/10 text-sm text-white/60 relative">
+                    <div className="flex items-center gap-6">
+                        <span className="flex items-center gap-2">
+                            <Type className="h-4 w-4 text-purple-300" />
+                            Words: <span className="text-white/90 font-medium">{wordCount}</span>
+                        </span>
+                        <span className="flex items-center gap-2">
+                            Characters: <span className="text-white/90 font-medium">{charCount}</span>
+                        </span>
+                    </div>
+                    <div className="text-xs text-white/50 flex items-center gap-3">
+                        <kbd className="px-2 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                            {modifier}B
+                        </kbd>
+                        <span>Bold</span>
+                        <kbd className="px-2 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                            {modifier}I
+                        </kbd>
+                        <span>Italic</span>
+                        <kbd className="px-2 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                            {modifier}U
+                        </kbd>
+                        <span>Underline</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default GlassTiptapEditor
