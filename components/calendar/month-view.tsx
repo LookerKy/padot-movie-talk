@@ -103,8 +103,8 @@ export function MonthView({ user }: MonthViewProps) {
             if (event.type === "WATCHED") return;
 
             let rowIndex = 0;
-            const eventStart = new Date(event.startDate).getTime();
-            const eventEnd = new Date(event.endDate).getTime();
+            const eventStart = startOfDay(new Date(event.startDate)).getTime();
+            const eventEnd = endOfDay(new Date(event.endDate)).getTime();
 
             while (true) {
                 const lastEndTime = rowEndDates[rowIndex] || 0;
@@ -219,18 +219,18 @@ export function MonthView({ user }: MonthViewProps) {
                     const isCinety = event.type === "CINETY";
 
                     const colors = [
-                        "bg-[#FFB3BA] text-red-900 border border-red-200",
-                        "bg-[#BAFFC9] text-green-900 border border-green-200",
-                        "bg-[#BAE1FF] text-blue-900 border border-blue-200",
-                        "bg-[#FFFFBA] text-yellow-900 border border-yellow-200",
-                        "bg-[#FFDFBA] text-orange-900 border border-orange-200",
-                        "bg-[#E0BBE4] text-purple-900 border border-purple-200",
-                        "bg-[#957DAD] text-indigo-100 border border-indigo-200",
-                        "bg-[#D291BC] text-pink-100 border border-pink-200",
-                        "bg-teal-100 text-teal-900 border border-teal-200",
-                        "bg-cyan-100 text-cyan-900 border border-cyan-200",
-                        "bg-lime-100 text-lime-900 border border-lime-200",
-                        "bg-rose-100 text-rose-900 border border-rose-200",
+                        "bg-[#FFB3BA] text-gray-900 border border-red-200",
+                        "bg-[#BAFFC9] text-gray-900 border border-green-200",
+                        "bg-[#BAE1FF] text-gray-900 border border-blue-200",
+                        "bg-[#FFFFBA] text-gray-900 border border-yellow-200",
+                        "bg-[#FFDFBA] text-gray-900 border border-orange-200",
+                        "bg-[#E0BBE4] text-gray-900 border border-purple-200",
+                        "bg-[#957DAD] text-gray-900 border border-indigo-200",
+                        "bg-[#D291BC] text-gray-900 border border-pink-200",
+                        "bg-teal-100 text-gray-900 border border-teal-200",
+                        "bg-cyan-100 text-gray-900 border border-cyan-200",
+                        "bg-lime-100 text-gray-900 border border-lime-200",
+                        "bg-rose-100 text-gray-900 border border-rose-200",
                     ];
 
                     const baseColor = colors[colorIndex % colors.length];
@@ -261,7 +261,7 @@ export function MonthView({ user }: MonthViewProps) {
                             {isStart && (
                                 <span className={cn(
                                     "drop-shadow-sm truncate w-full font-bold",
-                                    isCinety ? "text-blue-950 dark:text-blue-900" : "text-inherit"
+                                    isCinety ? "text-gray-900 font-extrabold" : "text-inherit"
                                 )}>{event.title}</span>
                             )}
                         </div>
@@ -434,7 +434,7 @@ export function MonthView({ user }: MonthViewProps) {
                         </div>
                     ))}
                 </div>
-                <div className="grid grid-cols-7 auto-rows-[140px]">
+                <div className="grid grid-cols-7 auto-rows-[minmax(140px,auto)]">
                     {calendarDays.map((day, idx) => (
                         <div
                             key={day.toISOString()}

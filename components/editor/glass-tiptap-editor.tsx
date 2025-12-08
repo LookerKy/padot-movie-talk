@@ -29,6 +29,7 @@ import {
     Sparkles,
     Type,
     Minus,
+    Check,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -463,15 +464,22 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                                 onCloseAutoFocus={(e) => e.preventDefault()}
+                                align="start"
+                                className="w-[120px] p-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-xl"
                             >
+                                <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 mb-0.5">
+                                    Size
+                                </div>
                                 {fontSizes.map(({ label, value }) => (
                                     <DropdownMenuItem
                                         key={value}
                                         onSelect={() => {
                                             setFontSize(value)
                                         }}
+                                        className="rounded-lg focus:bg-purple-500/10 focus:text-purple-600 dark:focus:text-purple-400 cursor-pointer flex justify-between items-center py-2"
                                     >
-                                        {label}
+                                        <span className={cn(activeFontSize === value ? "font-medium" : "")}>{label}</span>
+                                        {activeFontSize === value && <Check className="h-3 w-3 text-purple-500" />}
                                     </DropdownMenuItem>
                                 ))}
                             </DropdownMenuContent>
