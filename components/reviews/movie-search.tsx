@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { searchMoviesAction } from "@/app/actions/tmdb";
+import { searchMovies } from "@/app/actions/tmdb";
 import { checkReviewExists } from "@/app/actions/review";
 import { TMDBMovieSearchResult } from "@/lib/tmdb";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -43,14 +43,15 @@ export function MovieSearch({ onSelect, onManualRegister }: MovieSearchProps) {
         }
 
         setLoading(true);
-        const res = await searchMoviesAction(term);
-        setLoading(false);
-        setHasSearched(true);
-
-        if (res.success && res.data) {
-            setResults(res.data);
-        } else {
+        try {
+            const results = await searchMovies(term);
+            setResults(results);
+        } catch (error) {
+            console.error("검색 실패:", error);
             setResults([]);
+        } finally {
+            setLoading(false);
+            setHasSearched(true);
         }
     };
 

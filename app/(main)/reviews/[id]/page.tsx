@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Calendar, Quote, Star, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { generateTagColor } from "@/lib/utils";
+import { TAG_COLORS } from "@/lib/utils";
 import prisma from "@/lib/db/client";
 import { getSession } from "@/lib/auth";
 import { format } from "date-fns";
@@ -108,18 +108,21 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                             <div className="space-y-2">
                                 {/* Tags */}
                                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                    {review.tags.map((tag: Tag) => (
-                                        <Badge
-                                            key={tag.id}
-                                            className="px-3 py-1 text-sm font-medium text-white border-none shadow-lg backdrop-blur-md"
-                                            style={{
-                                                backgroundColor: tag.color || generateTagColor(tag.name),
-                                                boxShadow: `0 4px 12px ${tag.color || generateTagColor(tag.name)}40`
-                                            }}
-                                        >
-                                            {tag.name}
-                                        </Badge>
-                                    ))}
+                                    {review.tags.map((tag: Tag) => {
+                                        const color = tag.color || TAG_COLORS[tag.name.length % TAG_COLORS.length];
+                                        return (
+                                            <Badge
+                                                key={tag.id}
+                                                className="px-3 py-1 text-sm font-medium text-white border-none shadow-lg backdrop-blur-md"
+                                                style={{
+                                                    backgroundColor: color,
+                                                    boxShadow: `0 4px 12px ${color}40`
+                                                }}
+                                            >
+                                                {tag.name}
+                                            </Badge>
+                                        )
+                                    })}
                                 </div>
 
                                 {/* Title */}

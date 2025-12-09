@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { TAG_COLORS } from "@/lib/utils";
 import { getSession } from "@/lib/auth";
+import { requireAuth, AuthError } from "@/lib/auth-helpers";
 
 // Helper to get random color
 function getRandomTagColor() {
@@ -50,9 +51,14 @@ export async function submitReview(data: ReviewFormValues) {
     }
 
     // Auth Check
-    const session = await getSession();
-    if (!session || !session.user) {
-        return { success: false, error: "로그인이 필요합니다." };
+    let session;
+    try {
+        session = await requireAuth();
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { success: false, error: error.message };
+        }
+        throw error;
     }
 
     let reviewId: string;
@@ -103,9 +109,14 @@ export async function updateReview(reviewId: string, data: ReviewFormValues) {
     const { tags, ...rest } = result.data;
 
     // Auth & Ownership Check
-    const session = await getSession();
-    if (!session || !session.user) {
-        return { success: false, error: "로그인이 필요합니다." };
+    let session;
+    try {
+        session = await requireAuth();
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { success: false, error: error.message };
+        }
+        throw error;
     }
 
     try {

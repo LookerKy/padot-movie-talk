@@ -24,12 +24,4 @@ export const TAG_COLORS = [
     "#f43f5e", // rose-500
 ];
 
-export function generateTagColor(tagName: string): string {
-    let hash = 0;
-    for (let i = 0; i < tagName.length; i++) {
-        hash = tagName.charCodeAt(i) + ((hash << 5) - hash);
-    }
 
-    const index = Math.abs(hash % TAG_COLORS.length);
-    return TAG_COLORS[index];
-}

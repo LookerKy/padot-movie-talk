@@ -6,7 +6,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { reviewSchema, ReviewFormValues } from "@/lib/validations/review";
 import { submitReview, updateReview } from "@/app/actions/review";
-import { getMovieDetailsAction } from "@/app/actions/tmdb";
+import { getMovieDetails } from "@/app/actions/tmdb";
 import { getTagsAction } from "@/app/actions/tag";
 import { TMDBMovieSearchResult, getPosterUrl } from "@/lib/tmdb";
 import { StarRating } from "@/components/ui/star-rating";
@@ -33,8 +33,8 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
     const [availableTags, setAvailableTags] = useState<{ id: string; name: string }[]>([]);
 
     // Zustand Store
-    const setDraft = useReviewStore((state) => state.setDraft);
-    const removeDraft = useReviewStore((state) => state.removeDraft);
+    // Zustand Store
+    const { setDraft, removeDraft } = useReviewStore((state) => state.actions);
 
     const isEditMode = !!initialData;
 
@@ -109,8 +109,6 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
         }
     }, [movie, isEditMode, reset]);
 
-    const watchedValues = watch();
-
     // 0.5 Auto-Save Draft
     // 0.5 Auto-Save Draft (Optimized with useRef & Longer Debounce)
     const draftTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -118,36 +116,43 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
     useEffect(() => {
         if (isEditMode || !movie?.id) return;
 
-        // Clear existing timer if values change before timeout
-        if (draftTimerRef.current) {
-            clearTimeout(draftTimerRef.current);
-        }
-
-        // Set new timer
-        draftTimerRef.current = setTimeout(() => {
-            if (movie.id) {
-                setDraft(movie.id, watchedValues);
+        const subscription = watch((value) => {
+            // Clear existing timer if values change before timeout
+            if (draftTimerRef.current) {
+                clearTimeout(draftTimerRef.current);
             }
-        }, 2000); // Increased from 1000ms to 2000ms to reduce store updates
+
+            // Set new timer
+            draftTimerRef.current = setTimeout(() => {
+                if (movie.id) {
+                    setDraft(movie.id, value as any);
+                }
+            }, 2000); // Increased from 1000ms to 2000ms to reduce store updates
+        });
 
         return () => {
+            subscription.unsubscribe();
             if (draftTimerRef.current) {
                 clearTimeout(draftTimerRef.current);
             }
         };
-    }, [watchedValues, isEditMode, movie?.id, setDraft]);
+    }, [watch, isEditMode, movie?.id, setDraft]);
 
     // Fetch details (Director) and Tags on mount
     useEffect(() => {
         async function fetchData() {
             // 1. Fetch Director (Only in Create Mode using Movie ID)
             if (!isEditMode && movie?.id) {
-                const res = await getMovieDetailsAction(movie.id);
-                if (res.success && res.data) {
-                    const director = res.data.credits?.crew?.find((p: any) => p.job === "Director");
-                    if (director) {
-                        setValue("director", director.name);
+                try {
+                    const data = await getMovieDetails(movie.id);
+                    if (data) {
+                        const director = data.credits?.crew?.find((p: any) => p.job === "Director");
+                        if (director) {
+                            setValue("director", director.name);
+                        }
                     }
+                } catch (error) {
+                    console.error("Failed to fetch director:", error);
                 }
             }
 
@@ -204,6 +209,8 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                             src={displayPoster}
                             alt={displayTitle}
                             fill
+                            sizes="128px"
+                            priority
                             className="object-cover"
                         />
                     ) : (

@@ -12,7 +12,7 @@ export default async function CalendarPage() {
                     시네티 캘린더 📅
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400">
-                    SOOP 라이브 상영 일정 및 시청 기록
+                    SOOP 시네티 일정 및 페닷 시청 기록
                 </p>
             </div>
 

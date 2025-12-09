@@ -46,6 +46,8 @@ model Review {
   tags         Tag[]    @relation("ReviewTags")
 
   @@map("reviews")
+  @@index([watchedAt])
+  @@index([tmdbId])
 }
 
 model Tag {

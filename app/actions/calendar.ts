@@ -78,27 +78,27 @@ export async function getCalendarEvents(year: number, month: number) {
     }
 }
 
-const createEventSchema = z.object({
-    title: z.string().min(1, "제목을 입력해주세요"),
-    startDate: z.string(),
-    endDate: z.string(),
-});
+import { calendarEventSchema } from "@/lib/validations/calendar";
 
-import { getSession } from "@/lib/auth";
+import { requireAdmin, AuthError } from "@/lib/auth-helpers";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
 export async function createCalendarEvent(prevState: any, formData: FormData) {
-    const session = await getSession();
-    if (!session || session.user.role !== "ADMIN") {
-        return { error: "권한이 없습니다." };
+    try {
+        await requireAdmin();
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { error: error.message };
+        }
+        throw error;
     }
 
     const title = formData.get("title");
     const startDate = formData.get("startDate");
     const endDate = formData.get("endDate");
 
-    const result = createEventSchema.safeParse({ title, startDate, endDate });
+    const result = calendarEventSchema.safeParse({ title, startDate, endDate });
 
     if (!result.success) {
         return { error: "입력 값이 올바르지 않습니다." };
@@ -123,9 +123,13 @@ export async function createCalendarEvent(prevState: any, formData: FormData) {
 }
 
 export async function deleteCalendarEvent(id: string) {
-    const session = await getSession();
-    if (!session || session.user.role !== "ADMIN") {
-        return { error: "권한이 없습니다." };
+    try {
+        await requireAdmin();
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { error: error.message };
+        }
+        throw error;
     }
 
     try {
@@ -141,17 +145,20 @@ export async function deleteCalendarEvent(id: string) {
 }
 
 export async function updateCalendarEvent(id: string, formData: FormData) {
-    const session = await getSession();
-    if (!session || session.user.role !== "ADMIN") {
-        return { error: "권한이 없습니다." };
+    try {
+        await requireAdmin();
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { error: error.message };
+        }
+        throw error;
     }
 
     const title = formData.get("title");
     const startDate = formData.get("startDate");
     const endDate = formData.get("endDate");
 
-    // Re-use schema or partial validation
-    const result = createEventSchema.safeParse({ title, startDate, endDate });
+    const result = calendarEventSchema.safeParse({ title, startDate, endDate });
 
     if (!result.success) {
         return { error: "입력 값이 올바르지 않습니다." };

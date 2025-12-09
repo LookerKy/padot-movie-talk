@@ -1,19 +1,17 @@
-export interface Tag {
-    id: string;
-    name: string;
-    color?: string | null;
-}
+import { Review as PrismaReview, Tag as PrismaTag } from "@prisma/client";
 
-export interface Review {
-    id: string;
-    title: string;
-    rating: number;
+export type Tag = PrismaTag;
+
+export type ReviewWithTags = PrismaReview & {
     tags: Tag[];
-    oneLiner: string;
-    posterUrl: string | null;
-    watchedAt: Date;
-    content?: string;
-    director?: string | null;
-    tmdbId?: number | null;
-    isMustWatch?: boolean;
-}
+};
+
+export type ReviewListItem = Pick<
+    PrismaReview,
+    "id" | "title" | "rating" | "posterUrl" | "oneLiner" | "watchedAt" | "isMustWatch"
+> & {
+    tags: Tag[];
+};
+
+// Re-export Review for backward compatibility if needed, but ReviewWithTags is preferred.
+export type Review = ReviewWithTags;

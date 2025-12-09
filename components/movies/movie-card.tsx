@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { generateTagColor } from "@/lib/utils";
+import { TAG_COLORS } from "@/lib/utils";
 import Image from "next/image";
 import { GlassCard } from "@/components/ui/glass-card";
 import { RatingBadge } from "@/components/ui/rating-badge";
@@ -76,7 +76,8 @@ export function MovieCard({ review }: MovieCardProps) {
                                 <Badge
                                     key={tag.id}
                                     variant="secondary"
-                                    style={{ backgroundColor: tag.color || '#64748b' }}
+                                    className="text-white"
+                                    style={{ backgroundColor: tag.color || TAG_COLORS[tag.name.length % TAG_COLORS.length] }}
                                 >
                                     {tag.name}
                                 </Badge>

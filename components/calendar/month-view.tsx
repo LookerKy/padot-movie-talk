@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval, setMonth, setYear, startOfDay, endOfDay, areIntervalsOverlapping } from "date-fns";
 import { ko } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Film, Eye, ChevronDown, Loader2, Plus } from "lucide-react";
@@ -76,47 +76,55 @@ export function MonthView({ user }: MonthViewProps) {
     const months = Array.from({ length: 12 }, (_, i) => i);
 
     // --- Event Logic ---
-    // 1. Filter events for this view (Server action returns roughly correct range, but client filtering ensures exactness)
-    const visibleEvents = events.filter(event =>
-        // Check overlap logic: Start <= IntervalEnd AND End >= IntervalStart
-        (new Date(event.startDate) <= endDate && new Date(event.endDate) >= startDate)
-    );
+    // --- Event Logic ---
+    const { visibleEvents, sortedEvents, eventsWithRows } = useMemo(() => {
+        // 1. Filter events for this view
+        const _visibleEvents = events.filter(event =>
+            (new Date(event.startDate) <= endDate && new Date(event.endDate) >= startDate)
+        );
 
-    // 2. Sort events: Start Date ASC, then Duration DESC
-    const sortedEvents = visibleEvents.sort((a, b) => {
-        const startA = new Date(a.startDate).getTime();
-        const startB = new Date(b.startDate).getTime();
-        if (startA !== startB) {
-            return startA - startB;
-        }
-        const durationA = new Date(a.endDate).getTime() - startA;
-        const durationB = new Date(b.endDate).getTime() - startB;
-        return durationB - durationA;
-    });
-
-    // 3. Assign Rows (Packing) - Only for SCREENING mode
-    const eventsWithRows: (CalendarEventDisplay & { rowIndex: number })[] = [];
-    const rowEndDates: number[] = [];
-
-    if (viewMode === "SCREENING") {
-        sortedEvents.forEach(event => {
-            if (event.type === "WATCHED") return;
-
-            let rowIndex = 0;
-            const eventStart = startOfDay(new Date(event.startDate)).getTime();
-            const eventEnd = endOfDay(new Date(event.endDate)).getTime();
-
-            while (true) {
-                const lastEndTime = rowEndDates[rowIndex] || 0;
-                if (eventStart > lastEndTime) {
-                    rowEndDates[rowIndex] = eventEnd;
-                    eventsWithRows.push({ ...event, rowIndex });
-                    break;
-                }
-                rowIndex++;
+        // 2. Sort events
+        const _sortedEvents = [..._visibleEvents].sort((a, b) => {
+            const startA = new Date(a.startDate).getTime();
+            const startB = new Date(b.startDate).getTime();
+            if (startA !== startB) {
+                return startA - startB;
             }
+            const durationA = new Date(a.endDate).getTime() - startA;
+            const durationB = new Date(b.endDate).getTime() - startB;
+            return durationB - durationA;
         });
-    }
+
+        // 3. Assign Rows (Packing) - Only for SCREENING mode
+        const _eventsWithRows: (CalendarEventDisplay & { rowIndex: number })[] = [];
+        const rowEndDates: number[] = [];
+
+        if (viewMode === "SCREENING") {
+            _sortedEvents.forEach(event => {
+                if (event.type === "WATCHED") return;
+
+                let rowIndex = 0;
+                const eventStart = startOfDay(new Date(event.startDate)).getTime();
+                const eventEnd = endOfDay(new Date(event.endDate)).getTime();
+
+                while (true) {
+                    const lastEndTime = rowEndDates[rowIndex] || 0;
+                    if (eventStart > lastEndTime) {
+                        rowEndDates[rowIndex] = eventEnd;
+                        _eventsWithRows.push({ ...event, rowIndex });
+                        break;
+                    }
+                    rowIndex++;
+                }
+            });
+        }
+
+        return {
+            visibleEvents: _visibleEvents,
+            sortedEvents: _sortedEvents,
+            eventsWithRows: _eventsWithRows
+        };
+    }, [events, startDate, endDate, viewMode]);
 
     const handleDateClick = (day: Date) => {
         if (viewMode === "WATCHED") {

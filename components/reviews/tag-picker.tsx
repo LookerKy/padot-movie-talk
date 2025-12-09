@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Check, Hash, Plus, X } from "lucide-react";
-import { cn, generateTagColor } from "@/lib/utils";
+import { cn, TAG_COLORS } from "@/lib/utils";
 
 interface Tag {
     id: string;
@@ -122,7 +122,7 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags }: TagPick
                                     <div className="flex items-center gap-2">
                                         <div
                                             className={cn("w-2 h-2 rounded-full", isSelected ? "ring-2 ring-padot-blue-400 ring-offset-1 ring-offset-zinc-900" : "")}
-                                            style={{ backgroundColor: tag.color || generateTagColor(tag.name) }}
+                                            style={{ backgroundColor: tag.color || TAG_COLORS[tag.name.length % TAG_COLORS.length] }}
                                         />
                                         <span>{tag.name}</span>
                                     </div>

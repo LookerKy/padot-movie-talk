@@ -6,33 +6,40 @@ type ReviewDraft = Partial<ReviewFormValues>;
 
 interface ReviewStore {
     drafts: Record<number, ReviewDraft>;
-    setDraft: (tmdbId: number, data: ReviewDraft) => void;
-    removeDraft: (tmdbId: number) => void;
-    clearAllDrafts: () => void;
+    actions: {
+        setDraft: (tmdbId: number, data: ReviewDraft) => void;
+        removeDraft: (tmdbId: number) => void;
+        clearAllDrafts: () => void;
+    };
 }
 
 export const useReviewStore = create<ReviewStore>()(
     persist(
         (set) => ({
             drafts: {},
-            setDraft: (tmdbId, data) =>
-                set((state) => ({
-                    drafts: {
-                        ...state.drafts,
-                        [tmdbId]: { ...(state.drafts[tmdbId] || {}), ...data },
-                    },
-                })),
-            removeDraft: (tmdbId) =>
-                set((state) => {
-                    const newDrafts = { ...state.drafts };
-                    delete newDrafts[tmdbId];
-                    return { drafts: newDrafts };
-                }),
-            clearAllDrafts: () => set({ drafts: {} }),
+            actions: {
+                setDraft: (tmdbId, data) =>
+                    set((state) => ({
+                        drafts: {
+                            ...state.drafts,
+                            [tmdbId]: { ...(state.drafts[tmdbId] || {}), ...data },
+                        },
+                    })),
+                removeDraft: (tmdbId) =>
+                    set((state) => {
+                        const newDrafts = { ...state.drafts };
+                        delete newDrafts[tmdbId];
+                        return { drafts: newDrafts };
+                    }),
+                clearAllDrafts: () => set({ drafts: {} }),
+            },
         }),
         {
-            name: 'review-drafts', // name of the item in the storage (must be unique)
-            storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+            name: 'review-drafts',
+            storage: createJSONStorage(() => localStorage),
+            partialize: (state) => ({ drafts: state.drafts }), // Only persist drafts, actions don't need persistence logic but good practice to partialize
         }
     )
 );
+
+export const useReviewActions = () => useReviewStore((state) => state.actions);

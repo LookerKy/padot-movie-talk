@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { generateTagColor } from "@/lib/utils";
+import { TAG_COLORS } from "@/lib/utils";
 import Image from "next/image";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StarRating } from "@/components/ui/star-rating";
@@ -60,7 +60,7 @@ export function MovieListItem({ review }: MovieListItemProps) {
                                 variant="outline"
                                 className="text-white border-none shadow-sm backdrop-blur-md px-2 py-0.5"
                                 style={{
-                                    backgroundColor: tag.color || generateTagColor(tag.name)
+                                    backgroundColor: tag.color || TAG_COLORS[tag.name.length % TAG_COLORS.length]
                                 }}
                             >
                                 {tag.name}

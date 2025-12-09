@@ -29,29 +29,7 @@ export type TMDBMovieDetails = {
     };
 };
 
-export async function searchMovies(query: string): Promise<TMDBMovieSearchResult[]> {
-    if (!query) return [];
-
-    const res = await fetch(`${TMDB_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&language=ko-KR&api_key=${TMDB_API_KEY}`);
-
-    if (!res.ok) {
-        throw new Error(`TMDB API Error: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data.results || [];
-}
-
-export async function getMovieDetails(id: number): Promise<TMDBMovieDetails | null> {
-    const res = await fetch(`${TMDB_BASE_URL}/movie/${id}?append_to_response=credits&language=ko-KR&api_key=${TMDB_API_KEY}`);
-
-    if (!res.ok) {
-        if (res.status === 404) return null;
-        throw new Error(`TMDB API Error: ${res.statusText}`);
-    }
-
-    return res.json();
-}
+// Server actions moved to app/actions/tmdb.ts
 
 export function getPosterUrl(path: string | null) {
     if (!path) return "/placeholder-poster.png"; // You might want a better placeholder
