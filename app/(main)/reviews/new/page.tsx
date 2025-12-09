@@ -7,15 +7,23 @@ import { TMDBMovieSearchResult } from "@/lib/tmdb";
 
 export default function NewReviewPage() {
     const [selectedMovie, setSelectedMovie] = useState<TMDBMovieSearchResult | null>(null);
+    const [isManualMode, setIsManualMode] = useState(false);
 
     return (
         <div className="container mx-auto px-4 py-20 max-w-3xl">
-            {!selectedMovie ? (
-                <MovieSearch onSelect={setSelectedMovie} />
+            {!selectedMovie && !isManualMode ? (
+                <MovieSearch
+                    onSelect={setSelectedMovie}
+                    onManualRegister={() => setIsManualMode(true)}
+                />
             ) : (
                 <ReviewForm
-                    movie={selectedMovie}
-                    onCancel={() => setSelectedMovie(null)}
+                    movie={selectedMovie || undefined}
+                    isManualMode={isManualMode}
+                    onCancel={() => {
+                        setSelectedMovie(null);
+                        setIsManualMode(false);
+                    }}
                 />
             )}
         </div>

@@ -181,19 +181,21 @@ export async function getReviewsAction({ page = 1, limit = 12, minRating = null,
             where.isMustWatch = true;
         }
 
-        const reviews = await prisma.review.findMany({
-            where,
-            include: {
-                tags: true,
-            },
-            orderBy: {
-                watchedAt: "desc"
-            },
-            skip,
-            take: limit,
-        });
+        const [reviews, totalCount] = await prisma.$transaction([
+            prisma.review.findMany({
+                where,
+                include: {
+                    tags: true,
+                },
+                orderBy: {
+                    watchedAt: "desc"
+                },
+                skip,
+                take: limit,
+            }),
+            prisma.review.count({ where })
+        ]);
 
-        const totalCount = await prisma.review.count({ where });
         const hasMore = totalCount > skip + limit;
 
         return { success: true, reviews, hasMore, totalCount };

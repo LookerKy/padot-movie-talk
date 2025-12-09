@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { reviewSchema, ReviewFormValues } from "@/lib/validations/review";
@@ -23,9 +23,10 @@ interface ReviewFormProps {
     onCancel?: () => void;
     backLink?: string;
     availableTags?: { id: string; name: string }[];
+    isManualMode?: boolean;
 }
 
-export function ReviewForm({ movie, initialData, onCancel, backLink, availableTags: initialAvailableTags = [] }: ReviewFormProps) {
+export function ReviewForm({ movie, initialData, onCancel, backLink, availableTags: initialAvailableTags = [], isManualMode = false }: ReviewFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
@@ -111,16 +112,29 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
     const watchedValues = watch();
 
     // 0.5 Auto-Save Draft
+    // 0.5 Auto-Save Draft (Optimized with useRef & Longer Debounce)
+    const draftTimerRef = useRef<NodeJS.Timeout | null>(null);
+
     useEffect(() => {
         if (isEditMode || !movie?.id) return;
 
-        const timer = setTimeout(() => {
+        // Clear existing timer if values change before timeout
+        if (draftTimerRef.current) {
+            clearTimeout(draftTimerRef.current);
+        }
+
+        // Set new timer
+        draftTimerRef.current = setTimeout(() => {
             if (movie.id) {
                 setDraft(movie.id, watchedValues);
             }
-        }, 1000);
+        }, 2000); // Increased from 1000ms to 2000ms to reduce store updates
 
-        return () => clearTimeout(timer);
+        return () => {
+            if (draftTimerRef.current) {
+                clearTimeout(draftTimerRef.current);
+            }
+        };
     }, [watchedValues, isEditMode, movie?.id, setDraft]);
 
     // Fetch details (Director) and Tags on mount
@@ -178,11 +192,13 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
         }
     };
 
+    const isTitleEditable = isManualMode;
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 animate-slide-up pb-20">
             {/* Header: Selected Movie Info & Director */}
             <div className="flex gap-8 items-end">
-                <div className="relative w-32 h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl border border-white/10">
+                <div className="relative w-32 h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-2xl border border-white/10 group">
                     {displayPoster ? (
                         <Image
                             src={displayPoster}
@@ -191,16 +207,25 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                             className="object-cover"
                         />
                     ) : (
-                        <div className="w-full h-full bg-gray-900 flex items-center justify-center text-xs text-gray-500">
-                            No Poster
+                        <div className="w-full h-full bg-gray-900 flex items-center justify-center text-xs text-gray-500 flex-col gap-2 p-2 text-center">
+                            <span>No Poster</span>
                         </div>
                     )}
                 </div>
                 <div className="flex-1 space-y-4 pb-2">
                     <div>
-                        <h2 className="text-4xl font-bold text-white mb-2 tracking-tight">{displayTitle}</h2>
+                        {isTitleEditable ? (
+                            <input
+                                {...register("title")}
+                                placeholder="작품명을 입력하세요"
+                                className="w-full bg-transparent border-b border-white/20 py-2 text-4xl font-bold text-white mb-2 tracking-tight focus:outline-none focus:border-white/50 placeholder-gray-600"
+                            />
+                        ) : (
+                            <h2 className="text-4xl font-bold text-white mb-2 tracking-tight">{displayTitle}</h2>
+                        )}
+
                         <div className="flex items-center gap-3 text-gray-400 text-sm">
-                            {releaseYear && (
+                            {releaseYear && !isManualMode && (
                                 <>
                                     <span>{releaseYear}</span>
                                     <span className="w-1 h-1 rounded-full bg-gray-600" />
@@ -214,15 +239,20 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                                 {isEditMode ? "취소하고 돌아가기" : "다른 영화 검색하기"}
                             </button>
                         </div>
+                        {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title.message}</p>}
                     </div>
 
-                    {/* Read-Only Director Field */}
+                    {/* Director Field */}
                     <div className="max-w-xs">
                         <label className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1.5 block">Director</label>
                         <input
                             {...register("director")}
-                            readOnly
-                            className="w-full bg-transparent border-b border-white/20 py-2 text-white/90 text-lg font-medium focus:outline-none focus:border-white/50 transition-colors uppercase cursor-default"
+                            readOnly={!isManualMode}
+                            placeholder={isManualMode ? "감독 이름을 입력하세요(선택)" : ""}
+                            className={`w-full bg-transparent border-b border-white/20 py-2 text-white/90 text-lg font-medium focus:outline-none transition-colors uppercase ${isManualMode
+                                ? "cursor-text focus:border-white/50 placeholder-gray-600"
+                                : "cursor-default border-transparent"
+                                }`}
                         />
                     </div>
                 </div>

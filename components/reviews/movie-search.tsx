@@ -8,30 +8,15 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Loader2, Search, Calendar } from "lucide-react";
 import Image from "next/image";
 import { Modal } from "@/components/ui/modal";
-// If lodash not installed, implement simple debounce.
 
-function useDebounce<T extends (...args: any[]) => any>(func: T, wait: number) {
-    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout>();
-
-    return useCallback((...args: Parameters<T>) => {
-        if (timeoutId) {
-            clearTimeout(timeoutId);
-        }
-
-        const id = setTimeout(() => {
-            func(...args);
-        }, wait);
-
-        setTimeoutId(id);
-    }, [func, wait, timeoutId]);
-}
 
 
 interface MovieSearchProps {
     onSelect: (movie: TMDBMovieSearchResult) => void;
+    onManualRegister?: () => void;
 }
 
-export function MovieSearch({ onSelect }: MovieSearchProps) {
+export function MovieSearch({ onSelect, onManualRegister }: MovieSearchProps) {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<TMDBMovieSearchResult[]>([]);
     const [loading, setLoading] = useState(false);
@@ -69,12 +54,7 @@ export function MovieSearch({ onSelect }: MovieSearchProps) {
         }
     };
 
-    // Debounce the search
-    // Custom debounce since I shouldn't rely on uninstalled packages
-    const debouncedSearch = useCallback((term: string) => {
-        const handler = setTimeout(() => handleSearch(term), 500);
-        return () => clearTimeout(handler);
-    }, []);
+
 
     // Better hook usage or just simple timer in change
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
@@ -134,6 +114,7 @@ export function MovieSearch({ onSelect }: MovieSearchProps) {
                                         src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
                                         alt={movie.title}
                                         fill
+                                        sizes="100px"
                                         className="object-cover"
                                     />
                                 ) : (
@@ -156,8 +137,14 @@ export function MovieSearch({ onSelect }: MovieSearchProps) {
                     ))
                 ) : (
                     hasSearched && query && !loading && (
-                        <div className="text-center py-10 text-gray-500">
-                            검색 결과가 없습니다.
+                        <div className="text-center py-10 space-y-4">
+                            <p className="text-gray-500">검색 결과가 없습니다.</p>
+                            <button
+                                onClick={onManualRegister}
+                                className="text-padot-blue-400 hover:text-padot-blue-300 underline underline-offset-4 text-sm transition-colors"
+                            >
+                                직접 등록하러 가기
+                            </button>
                         </div>
                     )
                 )}

@@ -20,13 +20,19 @@ export function MovieCard({ review }: MovieCardProps) {
             <GlassCard className="group relative overflow-hidden p-0 h-full flex flex-col bg-white/10 dark:bg-black/20 border-white/20 hover:border-padot-blue-300">
                 {/* Poster Image Container */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden">
-                    <Image
-                        src={posterSrc}
-                        alt={review.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+                    {review.posterUrl ? (
+                        <Image
+                            src={review.posterUrl}
+                            alt={review.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-900 flex items-center justify-center text-gray-500 font-medium">
+                            No Poster
+                        </div>
+                    )}
 
                     {/* Main Overlay Gradient for readability (Bottom) */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />

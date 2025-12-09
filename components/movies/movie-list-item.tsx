@@ -26,6 +26,7 @@ export function MovieListItem({ review }: MovieListItemProps) {
                         src={posterSrc}
                         alt=""
                         fill
+                        sizes="100px" // Only used for hover blur, small size is fine
                         className="object-cover filter blur-xl scale-110"
                     />
                 </div>

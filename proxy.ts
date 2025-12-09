@@ -1,46 +1,84 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { updateSession } from "@/lib/auth";
-import { getSession } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { decrypt, refreshSession } from "@/lib/auth";
 
 export default async function proxy(request: NextRequest) {
-    // 1. Update session if it exists (extend expiry)
-    const sessionResponse = await updateSession(request);
-
-    // 2. Define protected routes
     const path = request.nextUrl.pathname;
     const isProtectedRoute = path.startsWith("/reviews/new") || path.match(/^\/reviews\/[^/]+\/edit$/);
 
-    // 3. User verification
-    if (isProtectedRoute) {
-        // We can't use getSession() directly from lib/auth because it relies on cookies(), 
-        // which might work differently in middleware or we want to be explicit.
-        // However, lib/auth's updateSession reads from request.cookies/headers, 
-        // which is standard for middleware.
-        // Let's manually check the cookie existence first for speed.
-        const sessionCookie = request.cookies.get("session");
+    // --- 1. Authentication Check & Refresh Logic ---
+    const accessToken = request.cookies.get("accessToken")?.value;
+    const refreshToken = request.cookies.get("refreshToken")?.value;
 
-        if (!sessionCookie) {
-            return NextResponse.redirect(new URL("/login", request.url));
+    let isAuthenticated = false;
+    let newTokens: { accessToken: string; refreshToken: string } | null = null;
+
+    // Check Access Token
+    if (accessToken) {
+        const payload = await decrypt(accessToken);
+        if (payload) {
+            isAuthenticated = true;
         }
-
-        // Optionally verify content of cookie if needed, but presence is a good first check.
-        // For robust check, we could use decrypt from lib/auth if edge compatible.
     }
 
-    // Return the response from updateSession (which sets the new cookie) or standard response
-    return sessionResponse || NextResponse.next();
+    // Check Refresh Token (if Access Token invalid/missing)
+    if (!isAuthenticated && refreshToken) {
+        const result = await refreshSession(refreshToken);
+        if (result) {
+            isAuthenticated = true;
+            newTokens = {
+                accessToken: result.accessToken,
+                refreshToken: result.refreshToken
+            };
+        }
+    }
+
+    // --- 2. Protected Route Guard ---
+    if (isProtectedRoute && !isAuthenticated) {
+        return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    // --- 3. Response Handling ---
+    // If not redirecting, proceed.
+    // If we have new tokens from a refresh, set them on the response.
+    const response = NextResponse.next();
+
+    if (newTokens) {
+        response.cookies.set({
+            name: "accessToken",
+            value: newTokens.accessToken,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+        });
+
+        response.cookies.set({
+            name: "refreshToken",
+            value: newTokens.refreshToken,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        });
+    }
+
+    // If verification failed (no valid tokens) but not on a protected route, 
+    // we might want to clear invalid cookies? 
+    // Usually good practice to keep state clean.
+    if (!isAuthenticated && (accessToken || refreshToken)) {
+        response.cookies.delete("accessToken");
+        response.cookies.delete("refreshToken");
+        response.cookies.delete("session");
+    }
+
+    return response;
 }
 
 export const config = {
-    matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - api (API routes)
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
-    ],
+    // Match all request paths except for the ones starting with:
+    // - api (API routes)
+    // - _next/static (static files)
+    // - _next/image (image optimization files)
+    // - favicon.ico (favicon file)
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
