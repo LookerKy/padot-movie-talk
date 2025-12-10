@@ -28,10 +28,12 @@ export default function CreateUserPage() {
 }
 
 import { useState } from "react";
+import { convertHangulToEnglish } from "@/lib/hangul-utils"; // Import utility
 
 function CreateUserForm() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ error?: string; success?: boolean; message?: string } | null>(null);
+    const [passwordValue, setPasswordValue] = useState(""); // Controlled password state
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -46,8 +48,15 @@ function CreateUserForm() {
             setMessage(res);
             if (res.success) {
                 (e.target as HTMLFormElement).reset();
+                setPasswordValue(""); // Reset password state
             }
         }
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        const converted = convertHangulToEnglish(val);
+        setPasswordValue(converted);
     };
 
     return (
@@ -74,6 +83,8 @@ function CreateUserForm() {
                     name="password"
                     required
                     minLength={4}
+                    value={passwordValue}
+                    onChange={handlePasswordChange}
                     className="w-full rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
                     placeholder="••••••••"
                 />

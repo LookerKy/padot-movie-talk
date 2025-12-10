@@ -2,26 +2,18 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs))
 }
 
 export const TAG_COLORS = [
-    "#ef4444", // red-500
-    "#f97316", // orange-500
-    "#f59e0b", // amber-500
-    "#84cc16", // lime-500
-    "#22c55e", // green-500
-    "#10b981", // emerald-500
-    "#14b8a6", // teal-500
-    "#06b6d4", // cyan-500
-    "#0ea5e9", // sky-500
-    "#3b82f6", // blue-500
-    "#6366f1", // indigo-500
-    "#8b5cf6", // violet-500
-    "#a855f7", // purple-500
-    "#d946ef", // fuchsia-500
-    "#ec4899", // pink-500
-    "#f43f5e", // rose-500
+  "#FF6B6B", // Pastel Red
+  "#4ECDC4", // Pastel Teal
+  "#45B7D1", // Pastel Blue
+  "#96CEB4", // Pastel Green
+  "#FFEEAD", // Pastel Yellow
+  "#D4A5A5", // Pastel Pink
+  "#9B59B6", // Pastel Purple
+  "#3498DB", // Blue
+  "#E67E22", // Orange
+  "#1ABC9C", // Turquoise
 ];
-
-

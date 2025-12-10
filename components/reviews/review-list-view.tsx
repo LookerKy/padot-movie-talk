@@ -112,7 +112,7 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
 
 
     return (
-        <div className="space-y-8 animate-fade-in relative z-10 pb-20">
+        <div className="space-y-12 animate-fade-in pb-20 max-w-6xl mx-auto">
             {/* Header & Controls Section */}
             <div className="flex flex-col gap-6">
 
@@ -128,15 +128,7 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
                     </div>
 
                     <div className="flex items-center gap-3 w-full md:w-auto">
-                        {user && (
-                            <Link
-                                href="/reviews/new"
-                                className="flex items-center gap-2 px-5 py-2.5 bg-padot-blue-500 text-white rounded-xl hover:bg-padot-blue-600 transition-all shadow-lg shadow-padot-blue-500/30 text-sm font-bold active:scale-95 hover:-translate-y-0.5 ml-auto md:ml-0"
-                            >
-                                <PlusCircle size={18} />
-                                <span>리뷰 작성</span>
-                            </Link>
-                        )}
+
                     </div>
                 </div>
 

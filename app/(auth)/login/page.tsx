@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import { loginAction, LoginState } from "@/app/actions/auth";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { convertHangulToEnglish } from "@/lib/hangul-utils";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -16,6 +18,51 @@ const initialState: LoginState = {
 export default function LoginPage() {
     const [state, action, isPending] = useActionState(loginAction, initialState);
     const [focusedField, setFocusedField] = useState<string | null>(null);
+
+    // Remember ID State
+    const [isRememberId, setIsRememberId] = useState(false);
+    const [savedId, setSavedId] = useState("");
+
+    // Password Conversion State
+    const [passwordValue, setPasswordValue] = useState("");
+    const [isConverted, setIsConverted] = useState(false);
+
+    // 1. Load Saved ID on Mount
+    useEffect(() => {
+        const storedId = localStorage.getItem("padot_remember_id");
+        if (storedId) {
+            setSavedId(storedId);
+            setIsRememberId(true);
+        }
+    }, []);
+
+    // 2. Handle Username Change & Save to LocalStorage
+    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSavedId(e.target.value);
+    };
+
+    // Save/Remove on Checkbox Toggle or Blur
+    useEffect(() => {
+        if (isRememberId) {
+            localStorage.setItem("padot_remember_id", savedId);
+        } else {
+            localStorage.removeItem("padot_remember_id");
+        }
+    }, [isRememberId, savedId]);
+
+
+    // 3. Handle Password Change (Auto Convert Hangul)
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value;
+        const converted = convertHangulToEnglish(rawValue);
+
+        if (rawValue !== converted) {
+            setIsConverted(true);
+            setTimeout(() => setIsConverted(false), 2000); // Show indicator briefly
+        }
+
+        setPasswordValue(converted);
+    };
 
     return (
         <div
@@ -61,7 +108,8 @@ export default function LoginPage() {
                                 name="username"
                                 type="text"
                                 placeholder="아이디를 입력해주세요"
-                                defaultValue={state?.fields?.username || ""}
+                                value={savedId}
+                                onChange={handleUsernameChange}
                                 onFocus={() => setFocusedField("username")}
                                 onBlur={() => setFocusedField(null)}
                                 className={cn(
@@ -97,19 +145,44 @@ export default function LoginPage() {
                                 name="password"
                                 type="password"
                                 placeholder="비밀번호를 입력해주세요"
+                                value={passwordValue}
+                                onChange={handlePasswordChange}
                                 onFocus={() => setFocusedField("password")}
                                 onBlur={() => setFocusedField(null)}
                                 className={cn(
                                     "relative w-full bg-black/60 border rounded-lg px-4 py-3.5 text-white placeholder:text-gray-600 focus:outline-none transition-all duration-300",
                                     state?.fieldErrors?.password
                                         ? "border-red-500/50 focus:border-red-500"
-                                        : "border-white/10 focus:border-padot-blue-500/50"
+                                        : "border-white/10 focus:border-padot-blue-500/50",
+                                    isConverted && "text-purple-300 border-purple-500/50"
                                 )}
                             />
+                            {isConverted && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 animate-pulse" title="한글 입력이 감지되어 영문으로 변환되었습니다">
+                                    <Sparkles size={16} />
+                                </div>
+                            )}
                         </div>
                         {state?.fieldErrors?.password && (
                             <p className="text-red-400 text-xs pl-1 animate-slide-up">{state.fieldErrors.password}</p>
                         )}
+
+                    </div>
+
+                    {/* Remember ID Checkbox */}
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="rememberId"
+                            checked={isRememberId}
+                            onCheckedChange={(checked) => setIsRememberId(checked as boolean)}
+                            className="data-[state=checked]:bg-padot-blue-500 data-[state=checked]:border-padot-blue-500 border-white/20"
+                        />
+                        <label
+                            htmlFor="rememberId"
+                            className="text-sm text-gray-400 cursor-pointer select-none hover:text-white transition-colors"
+                        >
+                            아이디 저장
+                        </label>
                     </div>
 
                     {state?.error && (

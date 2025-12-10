@@ -6,7 +6,7 @@ export default async function CalendarPage() {
     const session = await getSession();
 
     return (
-        <div className="animate-fade-in space-y-6">
+        <div className="animate-fade-in space-y-6 max-w-6xl mx-auto px-6 pt-6">
             <div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-padot-blue-600 to-purple-600 dark:from-padot-blue-400 dark:to-purple-400 mb-2">
                     시네티 캘린더 📅

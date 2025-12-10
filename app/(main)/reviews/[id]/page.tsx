@@ -60,7 +60,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
     const isOwner = session?.user?.id === review.authorId;
 
     return (
-        <div className="w-screen ml-[calc(50%-50vw)] -mt-32"> {/* Break out to full screen width */}
+        <div className="w-full relative -mt-8"> {/* Full width of container */}
 
             {/* 1. Hero Section (Contains Background + Content) */}
             <div className="relative w-full overflow-hidden">

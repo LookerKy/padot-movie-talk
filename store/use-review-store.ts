@@ -6,10 +6,12 @@ type ReviewDraft = Partial<ReviewFormValues>;
 
 interface ReviewStore {
     drafts: Record<number, ReviewDraft>;
+    isZenMode: boolean;
     actions: {
         setDraft: (tmdbId: number, data: ReviewDraft) => void;
         removeDraft: (tmdbId: number) => void;
         clearAllDrafts: () => void;
+        setZenMode: (isZenMode: boolean) => void;
     };
 }
 
@@ -17,6 +19,7 @@ export const useReviewStore = create<ReviewStore>()(
     persist(
         (set) => ({
             drafts: {},
+            isZenMode: false,
             actions: {
                 setDraft: (tmdbId, data) =>
                     set((state) => ({
@@ -32,12 +35,13 @@ export const useReviewStore = create<ReviewStore>()(
                         return { drafts: newDrafts };
                     }),
                 clearAllDrafts: () => set({ drafts: {} }),
+                setZenMode: (isZenMode) => set({ isZenMode }),
             },
         }),
         {
             name: 'review-drafts',
             storage: createJSONStorage(() => localStorage),
-            partialize: (state) => ({ drafts: state.drafts }), // Only persist drafts, actions don't need persistence logic but good practice to partialize
+            partialize: (state) => ({ drafts: state.drafts }), // Only persist drafts
         }
     )
 );

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Check, Hash, Plus, X } from "lucide-react";
+import { Check, Hash, Plus, X, Trash2, Loader2 } from "lucide-react";
 import { cn, TAG_COLORS } from "@/lib/utils";
+import { deleteTagAction } from "@/app/actions/tag";
+import { useRouter } from "next/navigation";
+import { ConfirmModal } from "@/components/shared/confirm-modal";
 
 interface Tag {
     id: string;
@@ -15,12 +18,16 @@ interface TagPickerProps {
     selectedTags: string[];
     onTagsChange: (tags: string[]) => void;
     availableTags: Tag[];
+    onTagDelete?: (tagId: string) => void;
 }
 
-export function TagPicker({ selectedTags, onTagsChange, availableTags }: TagPickerProps) {
+export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDelete }: TagPickerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
     const containerRef = useRef<HTMLDivElement>(null);
+    const [isPending, startTransition] = useTransition();
+    const router = useRouter();
+    const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
 
     // Close when clicking outside
     useEffect(() => {
@@ -50,6 +57,29 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags }: TagPick
             toggleTag(search);
             setSearch("");
         }
+    };
+
+    const handleDeleteClick = (e: React.MouseEvent, tag: Tag) => {
+        e.stopPropagation();
+        setTagToDelete(tag);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!tagToDelete) return;
+
+        startTransition(async () => {
+            const res = await deleteTagAction(tagToDelete.id);
+            if (res.success) {
+                if (selectedTags.includes(tagToDelete.name)) {
+                    onTagsChange(selectedTags.filter(t => t !== tagToDelete.name));
+                }
+                router.refresh();
+                if (onTagDelete) onTagDelete(tagToDelete.id);
+                setTagToDelete(null);
+            } else {
+                alert(res.error || "삭제 실패");
+            }
+        });
     };
 
     return (
@@ -126,7 +156,21 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags }: TagPick
                                         />
                                         <span>{tag.name}</span>
                                     </div>
-                                    {isSelected && <Check size={14} className="text-padot-blue-400" />}
+                                    <div className="flex items-center gap-2">
+                                        {isSelected && <Check size={14} className="text-padot-blue-400" />}
+                                        <div
+                                            role="button"
+                                            onClick={(e) => handleDeleteClick(e, tag)}
+                                            className="p-1 text-gray-500 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
+                                            title="태그 삭제"
+                                        >
+                                            {isPending && tagToDelete?.id === tag.id ? (
+                                                <Loader2 size={12} className="animate-spin" />
+                                            ) : (
+                                                <Trash2 size={12} />
+                                            )}
+                                        </div>
+                                    </div>
                                 </button>
                             )
                         })}
@@ -150,6 +194,17 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags }: TagPick
                     </div>
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={!!tagToDelete}
+                onClose={() => setTagToDelete(null)}
+                onConfirm={handleConfirmDelete}
+                title="태그 삭제"
+                description={`'${tagToDelete?.name}' 태그를 정말 삭제하시겠습니까?\n삭제된 태그는 복구할 수 없으며,\n모든 리뷰에서 제거됩니다.`}
+                confirmText="삭제하기"
+                isDestructive
+                isLoading={isPending}
+            />
         </div>
     );
 }

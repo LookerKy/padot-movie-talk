@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db/client";
-import { login, logout } from "@/lib/auth";
+import { login, logout, getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -90,4 +90,68 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
 export async function logoutAction() {
     await logout();
     redirect("/");
+}
+
+const changePasswordSchema = z.object({
+    currentPassword: z.string().min(1, "현재 비밀번호를 입력해주세요"),
+    newPassword: z.string().min(6, "새 비밀번호는 6자 이상이어야 합니다"),
+    confirmPassword: z.string().min(1, "비밀번호 확인을 입력해주세요"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "비밀번호가 일치하지 않습니다",
+    path: ["confirmPassword"],
+});
+
+export async function changePasswordAction(prevState: any, formData: FormData) {
+    try {
+        const session = await getSession();
+        if (!session || !session.user) {
+            return { error: "로그인이 필요합니다." };
+        }
+
+        const currentPassword = formData.get("currentPassword") as string;
+        const newPassword = formData.get("newPassword") as string;
+        const confirmPassword = formData.get("confirmPassword") as string;
+
+        const validation = changePasswordSchema.safeParse({
+            currentPassword,
+            newPassword,
+            confirmPassword
+        });
+
+        if (!validation.success) {
+            return { error: validation.error.flatten().fieldErrors };
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id }
+        });
+
+        if (!user) return { error: "사용자를 찾을 수 없습니다." };
+
+        // Verify current password
+        let isValid = false;
+        if (user.password.startsWith("$2")) {
+            isValid = await bcrypt.compare(currentPassword, user.password);
+        } else {
+            isValid = user.password === currentPassword;
+        }
+
+        if (!isValid) {
+            return { error: { currentPassword: ["현재 비밀번호가 일치하지 않습니다."] } };
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword }
+        });
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        return { error: "비밀번호 변경 중 오류가 발생했습니다." };
+    }
 }
