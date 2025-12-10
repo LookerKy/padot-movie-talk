@@ -72,16 +72,16 @@ export default function LoginPage() {
             }}
         >
             <div className={cn(
-                "backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl rounded-2xl p-8",
-                "transition-all duration-300 hover:shadow-padot-blue-900/20",
-                "flex flex-col gap-8"
+                "glass-card p-8",
+                "flex flex-col gap-8",
+                "bg-background/50 dark:bg-black/40" // Override glass-card bg for more opacity if needed, or rely on glass-card
             )}>
                 {/* Header */}
                 <div className="text-center space-y-2">
-                    <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-padot-blue-500 via-purple-500 to-pink-500 dark:from-padot-blue-400 dark:via-purple-400 dark:to-pink-400 drop-shadow-sm tracking-wide">
+                    <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-padot-blue-600 via-purple-600 to-pink-600 dark:from-padot-blue-400 dark:via-purple-400 dark:to-pink-400 drop-shadow-sm tracking-wide">
                         페닷 명화
                     </h1>
-                    <p className="text-gray-400 text-sm font-light">
+                    <p className="text-muted-foreground text-sm font-light">
                         리뷰 작성을 위해 로그인 해주세요
                     </p>
                 </div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                             htmlFor="username"
                             className={cn(
                                 "text-xs font-medium uppercase tracking-wider transition-colors duration-300 ml-1",
-                                focusedField === "username" ? "text-padot-blue-400" : "text-gray-500"
+                                focusedField === "username" ? "text-primary" : "text-muted-foreground"
                             )}
                         >
                             아이디
@@ -113,10 +113,10 @@ export default function LoginPage() {
                                 onFocus={() => setFocusedField("username")}
                                 onBlur={() => setFocusedField(null)}
                                 className={cn(
-                                    "relative w-full bg-black/60 border rounded-lg px-4 py-3.5 text-white placeholder:text-gray-600 focus:outline-none transition-all duration-300",
+                                    "relative w-full bg-background border rounded-lg px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:outline-none transition-all duration-300",
                                     state?.fieldErrors?.username
-                                        ? "border-red-500/50 focus:border-red-500"
-                                        : "border-white/10 focus:border-padot-blue-500/50"
+                                        ? "border-destructive focus:border-destructive"
+                                        : "border-border focus:border-primary"
                                 )}
                             />
                         </div>
@@ -130,7 +130,7 @@ export default function LoginPage() {
                             htmlFor="password"
                             className={cn(
                                 "text-xs font-medium uppercase tracking-wider transition-colors duration-300 ml-1",
-                                focusedField === "password" ? "text-padot-blue-400" : "text-gray-500"
+                                focusedField === "password" ? "text-primary" : "text-muted-foreground"
                             )}
                         >
                             비밀번호
@@ -150,11 +150,11 @@ export default function LoginPage() {
                                 onFocus={() => setFocusedField("password")}
                                 onBlur={() => setFocusedField(null)}
                                 className={cn(
-                                    "relative w-full bg-black/60 border rounded-lg px-4 py-3.5 text-white placeholder:text-gray-600 focus:outline-none transition-all duration-300",
+                                    "relative w-full bg-background border rounded-lg px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:outline-none transition-all duration-300",
                                     state?.fieldErrors?.password
-                                        ? "border-red-500/50 focus:border-red-500"
-                                        : "border-white/10 focus:border-padot-blue-500/50",
-                                    isConverted && "text-purple-300 border-purple-500/50"
+                                        ? "border-destructive focus:border-destructive"
+                                        : "border-border focus:border-primary",
+                                    isConverted && "text-purple-600 dark:text-purple-300 border-purple-500/50"
                                 )}
                             />
                             {isConverted && (
@@ -175,11 +175,11 @@ export default function LoginPage() {
                             id="rememberId"
                             checked={isRememberId}
                             onCheckedChange={(checked) => setIsRememberId(checked as boolean)}
-                            className="data-[state=checked]:bg-padot-blue-500 data-[state=checked]:border-padot-blue-500 border-white/20"
+                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-input"
                         />
                         <label
                             htmlFor="rememberId"
-                            className="text-sm text-gray-400 cursor-pointer select-none hover:text-white transition-colors"
+                            className="text-sm text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors"
                         >
                             아이디 저장
                         </label>
@@ -208,9 +208,9 @@ export default function LoginPage() {
                 <div className="text-center pt-2">
                     <Link
                         href="/"
-                        className="text-sm text-gray-500 hover:text-white transition-colors duration-300 flex items-center justify-center gap-2 group"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 flex items-center justify-center gap-2 group"
                     >
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-padot-blue-400 transition-colors" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground group-hover:bg-primary transition-colors" />
                         홈으로 돌아가기
                     </Link>
                 </div>

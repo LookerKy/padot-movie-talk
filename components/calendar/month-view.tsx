@@ -171,8 +171,6 @@ export function MonthView({ user }: MonthViewProps) {
             // But visually, we want to respect the rows.
             // Strategy: Render 0..MAX-2 fully.
             // Slot MAX-1: If there are events in row >= MAX-1, render "+N". Else render row MAX-1.
-
-            const totalDayEvents = dayEvents.length;
             // Find max row index on this day
             const maxRowIndexOnDay = Math.max(...dayEvents.map(e => e.rowIndex), -1);
             const needsOverflow = maxRowIndexOnDay >= MAX_SLOTS;
@@ -191,7 +189,7 @@ export function MonthView({ user }: MonthViewProps) {
                         slots.push(
                             <div
                                 key={`slot-${i}-overflow`}
-                                className={`${barHeight} mb-[1px] text-xs flex items-center px-1 text-gray-500 hover:text-padot-blue-500 hover:bg-gray-100 dark:hover:bg-white/5 rounded cursor-pointer transition-colors`}
+                                className={`${barHeight} mb-[1px] text-xs flex items-center px-1 text-muted-foreground hover:text-primary hover:bg-accent rounded cursor-pointer transition-colors`}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setDailyWatchDate(day);
@@ -268,8 +266,8 @@ export function MonthView({ user }: MonthViewProps) {
                         >
                             {isStart && (
                                 <span className={cn(
-                                    "drop-shadow-sm truncate w-full font-bold",
-                                    isCinety ? "text-gray-900 font-extrabold" : "text-inherit"
+                                    "drop-shadow-sm truncate w-full ",
+                                    isCinety ? "text-black" : "text-inherit font-bold"
                                 )}>{event.title}</span>
                             )}
                         </div>
@@ -303,7 +301,7 @@ export function MonthView({ user }: MonthViewProps) {
                         </div>
                     ))}
                     {hasMore && (
-                        <div className="px-1 text-[10px] text-gray-400">...</div>
+                        <div className="px-1 text-[10px] text-muted-foreground">...</div>
                     )}
                 </div>
             );
@@ -334,13 +332,14 @@ export function MonthView({ user }: MonthViewProps) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-20">
             {/* Controls Header */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
                 {/* Date Navigation */}
-                <div className="flex items-center gap-2 bg-white/50 dark:bg-black/20 p-1.5 rounded-xl backdrop-blur-md border border-white/10 shadow-sm relative">
-                    <button onClick={prevMonth} className="p-2 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-600 dark:text-gray-300">
+                {/* Date Navigation */}
+                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-md border border-border p-1.5 rounded-xl shadow-sm relative">
+                    <button onClick={prevMonth} className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground">
                         <ChevronLeft size={18} />
                     </button>
 
@@ -350,13 +349,13 @@ export function MonthView({ user }: MonthViewProps) {
                             <select
                                 value={currentDate.getFullYear()}
                                 onChange={handleYearChange}
-                                className="appearance-none bg-transparent font-bold text-lg text-gray-800 dark:text-gray-100 pr-6 cursor-pointer focus:outline-none"
+                                className="appearance-none bg-transparent font-bold text-lg text-foreground pr-6 cursor-pointer focus:outline-none"
                             >
                                 {years.map(year => (
-                                    <option key={year} value={year} className="bg-white dark:bg-gray-900">{year}년</option>
+                                    <option key={year} value={year} className="bg-popover text-popover-foreground">{year}년</option>
                                 ))}
                             </select>
-                            <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                         </div>
 
                         {/* Month Select */}
@@ -364,23 +363,23 @@ export function MonthView({ user }: MonthViewProps) {
                             <select
                                 value={currentDate.getMonth()}
                                 onChange={handleMonthChange}
-                                className="appearance-none bg-transparent font-bold text-lg text-gray-800 dark:text-gray-100 pr-6 cursor-pointer focus:outline-none"
+                                className="appearance-none bg-transparent font-bold text-lg text-foreground pr-6 cursor-pointer focus:outline-none"
                             >
                                 {months.map(month => (
-                                    <option key={month} value={month} className="bg-white dark:bg-gray-900">{month + 1}월</option>
+                                    <option key={month} value={month} className="bg-popover text-popover-foreground">{month + 1}월</option>
                                 ))}
                             </select>
-                            <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                         </div>
                     </div>
 
-                    <button onClick={nextMonth} className="p-2 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-600 dark:text-gray-300">
+                    <button onClick={nextMonth} className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground">
                         <ChevronRight size={18} />
                     </button>
 
                     {isLoading && (
                         <div className="absolute -right-8 top-1/2 -translate-y-1/2">
-                            <Loader2 size={16} className="animate-spin text-padot-blue-500" />
+                            <Loader2 size={16} className="animate-spin text-primary" />
                         </div>
                     )}
                 </div>
@@ -388,9 +387,9 @@ export function MonthView({ user }: MonthViewProps) {
                 <div className="flex gap-4">
                     {/* Admin 'Add Schedule' Button */}
                     {user?.role === "ADMIN" && (
-                        <div className="flex p-1 bg-gray-100 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-white/5">
+                        <div className="flex p-1 bg-muted rounded-lg border border-border">
                             <button
-                                className="flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 bg-white dark:bg-gray-700 text-padot-blue-600 dark:text-white shadow-sm hover:brightness-95"
+                                className="flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 bg-background text-primary shadow-sm hover:brightness-95"
                                 onClick={() => {
                                     setSelectedDate(new Date());
                                     setEditModeData(undefined);
@@ -404,14 +403,14 @@ export function MonthView({ user }: MonthViewProps) {
                     )}
 
                     {/* View Mode Toggle */}
-                    <div className="flex p-1 bg-gray-100 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-white/5">
+                    <div className="flex p-1 bg-muted rounded-lg border border-border">
                         <button
                             onClick={() => setViewMode("SCREENING")}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
                                 viewMode === "SCREENING"
-                                    ? "bg-white dark:bg-gray-700 text-padot-blue-600 dark:text-white shadow-sm"
-                                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <Film size={14} />
@@ -422,8 +421,8 @@ export function MonthView({ user }: MonthViewProps) {
                             className={cn(
                                 "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
                                 viewMode === "WATCHED"
-                                    ? "bg-white dark:bg-gray-700 text-padot-blue-600 dark:text-blue-400 shadow-sm"
-                                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <Eye size={14} />
@@ -435,9 +434,9 @@ export function MonthView({ user }: MonthViewProps) {
 
             {/* Calendar Grid */}
             <GlassCard className="p-0 overflow-hidden" hoverEffect={false}>
-                <div className="grid grid-cols-7 text-center border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
+                <div className="grid grid-cols-7 text-center border-b border-border bg-muted/30">
                     {["일", "월", "화", "수", "목", "금", "토"].map(day => (
-                        <div key={day} className="py-3 font-semibold text-gray-500 text-sm">
+                        <div key={day} className="py-3 font-semibold text-muted-foreground text-sm">
                             {day}
                         </div>
                     ))}
@@ -448,18 +447,18 @@ export function MonthView({ user }: MonthViewProps) {
                             key={day.toISOString()}
                             onClick={() => handleDateClick(day)}
                             className={cn(
-                                "border-b border-r border-gray-100 dark:border-white/5 p-1 transition-colors relative group",
+                                "border-b border-r border-border/50 p-1 transition-colors relative group",
                                 // Only hover effect if Admin
-                                user?.role === "ADMIN" && "hover:bg-padot-blue-50/30 dark:hover:bg-white/5 cursor-pointer",
-                                !isSameMonth(day, monthStart) && "bg-gray-50/30 dark:bg-black/20 text-gray-400"
+                                user?.role === "ADMIN" && "hover:bg-accent/50 cursor-pointer",
+                                !isSameMonth(day, monthStart) && "bg-muted/10 text-muted-foreground/50"
                             )}
                         >
                             <div className="flex justify-between items-start px-1">
                                 <span className={cn(
                                     "text-sm font-medium inline-flex w-7 h-7 items-center justify-center rounded-full z-20 relative",
                                     isSameDay(day, new Date())
-                                        ? "bg-padot-blue-500 text-white"
-                                        : "text-gray-700 dark:text-gray-300"
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-foreground"
                                 )}>
                                     {format(day, "d")}
                                 </span>

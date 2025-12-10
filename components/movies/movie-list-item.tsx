@@ -16,8 +16,8 @@ export function MovieListItem({ review }: MovieListItemProps) {
     const posterSrc = review.posterUrl || "/placeholder-poster.png";
 
     return (
-        <Link href={`/reviews/${review.id}`} className="block">
-            <GlassCard className="group relative flex items-center gap-6 p-4 overflow-hidden transition-all duration-300 hover:scale-[1.01]" hoverEffect={false}>
+        <Link href={`/reviews/${review.id}`} className="block" prefetch={false}>
+            <GlassCard className="group relative flex items-center gap-6 p-4 overflow-hidden transition-transform duration-300 hover:scale-[1.01]" hoverEffect={false}>
 
                 {/* 1. Hover Background (Poster Blur) */}
                 <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
@@ -42,7 +42,7 @@ export function MovieListItem({ review }: MovieListItemProps) {
                 <div className="flex-1 min-w-0 grid grid-cols-12 gap-4 items-center relative z-10 group-hover:opacity-0 transition-opacity duration-200">
                     {/* Title */}
                     <div className="col-span-12 md:col-span-5 relative">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                        <h3 className="text-lg font-bold text-foreground truncate">
                             {review.title}
                         </h3>
                     </div>
@@ -69,7 +69,7 @@ export function MovieListItem({ review }: MovieListItemProps) {
                     </div>
 
                     {/* Date */}
-                    <div className="col-span-4 md:col-span-1 text-right text-xs text-gray-400">
+                    <div className="col-span-4 md:col-span-1 text-right text-xs text-muted-foreground">
                         {formattedDate}
                     </div>
                 </div>

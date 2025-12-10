@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Check, Hash, Plus, X, Trash2, Loader2 } from "lucide-react";
 import { cn, TAG_COLORS } from "@/lib/utils";
-import { deleteTagAction } from "@/app/actions/tag";
+import { deleteTagAction, createTagAction } from "@/app/actions/tag";
 import { useRouter } from "next/navigation";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 
@@ -19,9 +19,10 @@ interface TagPickerProps {
     onTagsChange: (tags: string[]) => void;
     availableTags: Tag[];
     onTagDelete?: (tagId: string) => void;
+    onTagCreate?: (tag: Tag) => void;
 }
 
-export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDelete }: TagPickerProps) {
+export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDelete, onTagCreate }: TagPickerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
     const containerRef = useRef<HTMLDivElement>(null);
@@ -54,8 +55,19 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDele
 
     const createNewTag = () => {
         if (search && !selectedTags.includes(search)) {
-            toggleTag(search);
-            setSearch("");
+            startTransition(async () => {
+                const res = await createTagAction(search);
+                if (res.success && res.tag) {
+                    if (onTagCreate) {
+                        onTagCreate(res.tag);
+                    }
+                    // Add to selected tags immediately
+                    toggleTag(res.tag.name);
+                    setSearch("");
+                } else {
+                    alert(res.error || "태그 생성 실패");
+                }
+            });
         }
     };
 
@@ -86,26 +98,33 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDele
         <div className="space-y-3" ref={containerRef}>
             {/* Selected Tags Display */}
             <div className="flex flex-wrap gap-3 min-h-[32px]">
-                {selectedTags.map(tag => (
-                    <Badge
-                        key={tag}
-                        className="bg-white/10 text-white hover:bg-white/20 border-0 px-3 py-1.5 flex items-center gap-2 text-sm font-medium transition-all"
-                    >
-                        {tag}
-                        <button
-                            type="button"
-                            onClick={() => toggleTag(tag)}
-                            className="text-white/50 hover:text-white transition-colors"
+                {selectedTags.map(tagName => {
+                    const tagInfo = availableTags.find(t => t.name === tagName);
+                    return (
+                        <Badge
+                            key={tagName}
+                            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 border-0 px-3 py-1.5 flex items-center gap-2 text-sm font-medium transition-all"
                         >
-                            <X size={14} />
-                        </button>
-                    </Badge>
-                ))}
+                            <span
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: tagInfo?.color || TAG_COLORS[tagName.length % TAG_COLORS.length] }}
+                            />
+                            {tagName}
+                            <button
+                                type="button"
+                                onClick={() => toggleTag(tagName)}
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <X size={14} />
+                            </button>
+                        </Badge>
+                    );
+                })}
 
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 text-sm text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-gray-400 dark:border-border text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all"
                 >
                     <Plus size={14} />
                     <span>태그 추가</span>
@@ -114,8 +133,8 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDele
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute z-50 w-64 mt-2 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                    <div className="p-2 border-b border-white/10">
+                <div className="absolute z-50 w-64 mt-2 bg-popover/95 backdrop-blur-sm border border-border rounded-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div className="p-2 border-b border-border">
                         <input
                             autoFocus
                             placeholder="태그 검색 또는 생성..."
@@ -129,12 +148,12 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDele
                                     createNewTag();
                                 }
                             }}
-                            className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 focus:outline-none px-2 py-1"
+                            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none px-2 py-1"
                         />
                     </div>
 
                     <div className="max-h-60 overflow-y-auto p-1">
-                        <div className="px-2 py-1.5 text-xs font-medium text-gray-500">
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
                             TAGS
                         </div>
                         {filteredTags.map(tag => {
@@ -146,22 +165,24 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDele
                                     onClick={() => toggleTag(tag.name)}
                                     className={cn(
                                         "w-full flex items-center justify-between px-2 py-1.5 rounded-md text-sm transition-colors group",
-                                        isSelected ? "bg-padot-blue-500/20 text-padot-blue-300" : "text-gray-300 hover:bg-white/5 hover:text-white"
+                                        isSelected
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                                     )}
                                 >
                                     <div className="flex items-center gap-2">
                                         <div
-                                            className={cn("w-2 h-2 rounded-full", isSelected ? "ring-2 ring-padot-blue-400 ring-offset-1 ring-offset-zinc-900" : "")}
+                                            className={cn("w-2 h-2 rounded-full", isSelected ? "ring-2 ring-primary ring-offset-1 ring-offset-popover" : "")}
                                             style={{ backgroundColor: tag.color || TAG_COLORS[tag.name.length % TAG_COLORS.length] }}
                                         />
                                         <span>{tag.name}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {isSelected && <Check size={14} className="text-padot-blue-400" />}
+                                        {isSelected && <Check size={14} className="text-primary" />}
                                         <div
                                             role="button"
                                             onClick={(e) => handleDeleteClick(e, tag)}
-                                            className="p-1 text-gray-500 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
+                                            className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
                                             title="태그 삭제"
                                         >
                                             {isPending && tagToDelete?.id === tag.id ? (
@@ -179,15 +200,16 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDele
                             <button
                                 type="button"
                                 onClick={createNewTag}
-                                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                disabled={isPending}
+                                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
                             >
-                                <Plus size={14} />
+                                {isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
                                 <span>"{search}" 생성</span>
                             </button>
                         )}
 
                         {filteredTags.length === 0 && !search && (
-                            <div className="px-4 py-8 text-center text-xs text-gray-600">
+                            <div className="px-4 py-8 text-center text-xs text-muted-foreground">
                                 사용 가능한 태그가 없습니다.
                             </div>
                         )}

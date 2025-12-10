@@ -60,22 +60,22 @@ function CreateUserForm() {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-card p-6 rounded-2xl border border-border shadow-sm">
             <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-foreground">
                     아이디 (Username)
                 </label>
                 <input
                     name="username"
                     required
                     minLength={3}
-                    className="w-full rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-muted-foreground"
                     placeholder="padot_admin"
                 />
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-foreground">
                     비밀번호
                 </label>
                 <input
@@ -85,33 +85,33 @@ function CreateUserForm() {
                     minLength={4}
                     value={passwordValue}
                     onChange={handlePasswordChange}
-                    className="w-full rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-muted-foreground"
                     placeholder="••••••••"
                 />
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-foreground">
                     이름 (선택)
                 </label>
                 <input
                     name="name"
-                    className="w-full rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-muted-foreground"
                     placeholder="관리자"
                 />
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-foreground">
                     권한
                 </label>
                 <select
                     name="role"
-                    className="w-full rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors placeholder:text-muted-foreground"
                     defaultValue="USER"
                 >
-                    <option value="USER">일반 사용자 (USER)</option>
-                    <option value="ADMIN">관리자 (ADMIN)</option>
+                    <option value="USER" className="bg-popover text-popover-foreground">일반 사용자 (USER)</option>
+                    <option value="ADMIN" className="bg-popover text-popover-foreground">관리자 (ADMIN)</option>
                 </select>
             </div>
 

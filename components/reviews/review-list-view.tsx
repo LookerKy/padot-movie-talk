@@ -9,6 +9,7 @@ import { List, PlusCircle, Trophy, Star, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Review } from "@/lib/types";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 const FilterToolbar = dynamic(
     () => import("@/components/reviews/filter-toolbar").then((mod) => mod.FilterToolbar),
@@ -111,6 +112,18 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
     const sortedRatingKeys = Object.keys(reviewsByRating).map(Number).sort((a, b) => b - a);
 
 
+    // State to track how many items are visible per rating group
+    const [visibleCounts, setVisibleCounts] = useState<Record<number, number>>({});
+    const INITIAL_VISIBLE_COUNT = 6;
+    const LOAD_MORE_INCREMENT = 12;
+
+    const handleShowMore = (rating: number) => {
+        setVisibleCounts(prev => ({
+            ...prev,
+            [rating]: (prev[rating] || INITIAL_VISIBLE_COUNT) + LOAD_MORE_INCREMENT
+        }));
+    };
+
     return (
         <div className="space-y-12 animate-fade-in pb-20 max-w-6xl mx-auto">
             {/* Header & Controls Section */}
@@ -119,10 +132,10 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
                 {/* Title & Action Row */}
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-end">
                     <div>
-                        <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-padot-blue-500 via-purple-500 to-pink-500 dark:from-padot-blue-400 dark:via-purple-400 dark:to-pink-400 drop-shadow-sm tracking-wide font-cookie">
+                        <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-padot-blue-500 via-purple-500 to-pink-500 dark:from-padot-blue-400 dark:via-purple-400 dark:to-pink-400 drop-shadow-sm tracking-wide">
                             송충이 어워즈
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 font-medium">
+                        <p className="text-muted-foreground text-sm mt-2 font-medium">
                             페닷의 송충이 영화 리뷰 아카이브
                         </p>
                     </div>
@@ -133,7 +146,7 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
                 </div>
 
                 {/* Filter Toolbar Row - Separated from Content for better visual hierarchy */}
-                <div className="sticky top-4 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm p-2 transition-all duration-300">
+                <div className="sticky top-4 z-40 bg-background/90 backdrop-blur-md rounded-2xl border border-border/50 shadow-sm p-2 will-change-transform">
                     <FilterToolbar
                         tags={availableTags}
                         currentMinRating={filters.minRating}
@@ -158,11 +171,11 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
                             if (reviews.length === index + 1) {
                                 return (
                                     <div ref={lastReviewElementRef} key={review.id}>
-                                        <MovieCard review={review} />
+                                        <MovieCard review={review} priority={index < 4} />
                                     </div>
                                 );
                             } else {
-                                return <MovieCard key={review.id} review={review} />;
+                                return <MovieCard key={review.id} review={review} priority={index < 4} />;
                             }
                         })}
                     </div>
@@ -174,52 +187,105 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
                         {sortedRatingKeys.map((rating) => {
                             const groupReviews = reviewsByRating[rating];
                             const isExpanded = expandedRatings[rating];
+                            const visibleCount = visibleCounts[rating] || INITIAL_VISIBLE_COUNT;
+                            const visibleReviews = groupReviews.slice(0, visibleCount);
+                            const hasMoreInGroup = groupReviews.length > visibleCount;
 
                             return (
-                                <div key={rating} className="space-y-3">
+                                <div key={rating} className="space-y-3 bg-card/30 rounded-2xl p-2 transition-colors hover:bg-card/50">
                                     {/* Rating Header */}
                                     <button
                                         onClick={() => toggleRatingGroup(rating)}
-                                        className="flex items-center gap-3 w-full text-left group select-none"
+                                        className="flex items-center gap-4 w-full text-left group select-none p-2 rounded-xl transition duration-300 hover:bg-white/5 active:scale-[0.99]"
                                     >
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-padot-blue-500/10 text-padot-blue-600 dark:text-padot-blue-400 font-bold text-lg">
-                                            {rating}
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex gap-0.5">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            size={16}
+                                                            className={cn(
+                                                                i < rating ? "fill-yellow-400 text-yellow-400" : "fill-muted/20 text-muted-foreground/20"
+                                                            )}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <span className="text-xs font-semibold text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-md border border-border/50">
+                                                    {groupReviews.length}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 font-cookie">
-                                                {rating}점 영화들
-                                            </h3>
-                                            <span className="text-sm font-medium text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                                                {groupReviews.length}
-                                            </span>
-                                        </div>
-                                        <div className={`h-px flex-1 bg-slate-200 dark:bg-slate-800 transition-colors group-hover:bg-padot-blue-200 dark:group-hover:bg-padot-blue-900`} />
-                                        <div className="text-slate-400 transition-transform duration-300 transform group-hover:text-padot-blue-500" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+
+                                        <div className="flex-1" />
+
+                                        <div
+                                            className={cn(
+                                                "w-8 h-8 rounded-full flex items-center justify-center bg-secondary/30 text-muted-foreground transition duration-300 group-hover:bg-secondary/60 group-hover:text-foreground",
+                                                isExpanded && "rotate-180 bg-primary/10 text-primary group-hover:bg-primary/20"
+                                            )}
+                                        >
                                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                         </div>
                                     </button>
 
                                     {/* Items */}
-                                    <div
-                                        className={`grid gap-3 overflow-hidden transition-all duration-300 ease-in-out p-2 -m-2 ${isExpanded ? 'opacity-100 mb-8' : 'opacity-0 h-0 m-0'}`}
-                                    >
-                                        {groupReviews.map((review: Review, index: number) => {
-                                            // Handling last element ref logic within groups is tricky because visually last might be different.
-                                            // Simple approach: attach ref to the absolute last element of the entire list.
-                                            const isGlobalLast = reviews[reviews.length - 1].id === review.id;
+                                    <AnimatePresence initial={false}>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{
+                                                    height: "auto",
+                                                    opacity: 1,
+                                                    transition: {
+                                                        height: {
+                                                            type: "spring",
+                                                            stiffness: 500,
+                                                            damping: 30,
+                                                            mass: 1
+                                                        },
+                                                        opacity: { duration: 0.2, delay: 0.1 }
+                                                    }
+                                                }}
+                                                exit={{
+                                                    height: 0,
+                                                    opacity: 0,
+                                                    transition: {
+                                                        height: {
+                                                            type: "tween",
+                                                            duration: 0.3,
+                                                            ease: "easeInOut"
+                                                        },
+                                                        opacity: { duration: 0.2 }
+                                                    }
+                                                }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="grid gap-3 pt-2 pb-4 px-2">
+                                                    {visibleReviews.map((review: Review) => (
+                                                        <MovieListItem key={review.id} review={review} />
+                                                    ))}
+                                                </div>
 
-                                            if (isGlobalLast) {
-                                                return (
-                                                    <div ref={lastReviewElementRef} key={review.id}>
-                                                        <MovieListItem review={review} />
+                                                {/* Show More Button */}
+                                                {hasMoreInGroup && (
+                                                    <div className="flex justify-center pb-2">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleShowMore(rating);
+                                                            }}
+                                                            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-secondary/50"
+                                                        >
+                                                            더 보기 ({groupReviews.length - visibleCount})
+                                                        </button>
                                                     </div>
-                                                )
-                                            }
-                                            return <MovieListItem key={review.id} review={review} />
-                                        })}
-                                    </div>
+                                                )}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             )
                         })}
@@ -229,18 +295,18 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
                 {/* Loading State */}
                 {isLoading && (
                     <div className="flex justify-center py-12">
-                        <Loader2 className="animate-spin text-padot-blue-500" size={40} />
+                        <Loader2 className="animate-spin text-primary" size={40} />
                     </div>
                 )}
 
                 {/* Empty State */}
                 {!isLoading && reviews.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <Trophy className="w-16 h-16 text-slate-300 dark:text-slate-700 mb-4" />
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                        <Trophy className="w-16 h-16 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
                             조건에 맞는 리뷰가 없습니다
                         </h3>
-                        <p className="text-slate-500 dark:text-slate-400">
+                        <p className="text-muted-foreground">
                             필터를 변경하거나 새로운 리뷰를 등록해보세요.
                         </p>
                     </div>

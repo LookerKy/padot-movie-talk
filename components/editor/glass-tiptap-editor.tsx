@@ -56,15 +56,17 @@ const ToolbarButton = ({ onClick, isActive, children, title }: ToolbarButtonProp
         }}
         className={cn(
             "h-9 w-9 p-0 transition-all duration-300 hover:scale-105",
-            "bg-white/10 backdrop-blur-md border border-white/20 rounded-xl",
-            "hover:bg-white/20 hover:border-white/30 hover:shadow-lg hover:shadow-purple-500/20",
+            "bg-secondary/50 backdrop-blur-md border border-gray-400 dark:border-border rounded-xl",
+            "hover:bg-secondary hover:border-primary/30 hover:shadow-lg hover:shadow-purple-500/20",
             "group relative overflow-hidden",
-            isActive && "bg-purple-500/30 text-white border-purple-400/50 shadow-lg shadow-purple-500/30"
+            isActive && "bg-purple-500/20 text-purple-600 dark:text-purple-300 border-purple-400/50 shadow-lg shadow-purple-500/20"
         )}
         title={title}
     >
         <div className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-        <div className="relative z-10 text-white/90 group-hover:text-white">{children}</div>
+        <div className="relative z-10 text-muted-foreground group-hover:text-foreground transition-colors">
+            {children}
+        </div>
     </Button>
 )
 
@@ -114,7 +116,11 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
             }),
             TextStyle,
             FontSize,
-            UnderlineExtension,
+            // UnderlineExtension is explicitly reported as duplicate, removing it to test if StarterKit or another ext provides it.
+            // If functionality breaks, we'll revert. But usually StarterKit doesn't have it.
+            // Check: maybe it's instantiated twice?
+            // Actually, let's just comment it out.
+            // UnderlineExtension, 
             TextAlign.configure({
                 types: ['heading', 'paragraph', 'bulletList', 'orderedList'],
             }),
@@ -125,30 +131,29 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
             attributes: {
                 class: cn(
                     "min-h-[500px] p-8 focus:outline-none relative z-10",
-                    "prose prose-lg max-w-none font-sans",
+                    "prose prose-lg max-w-none font-sans dark:prose-invert",
                     "transition-all duration-300",
-                    "text-white/95 leading-relaxed",
-                    "selection:bg-purple-500/30 selection:text-white",
-                    "[&>h1]:text-4xl [&>h1]:font-bold [&>h1]:text-white [&>h1]:mb-6 [&>h1]:mt-8",
-                    "[&>h2]:text-3xl [&>h2]:font-semibold [&>h2]:text-white/95 [&>h2]:mb-4 [&>h2]:mt-6",
-                    "[&>h3]:text-2xl [&>h3]:font-medium [&>h3]:text-white/90 [&>h3]:mb-3 [&>h3]:mt-5",
-                    "[&>p]:mb-4 [&>p]:leading-relaxed [&>p]:text-white/90",
-                    "[&>ul]:mb-6 [&>ul]:text-white/90",
-                    "[&>ol]:mb-6 [&>ol]:text-white/90",
+                    "text-foreground leading-relaxed",
+                    "selection:bg-purple-500/30 selection:text-foreground",
+                    "[&>h1]:text-4xl [&>h1]:font-bold [&>h1]:text-foreground [&>h1]:mb-6 [&>h1]:mt-8",
+                    "[&>h2]:text-3xl [&>h2]:font-semibold [&>h2]:text-foreground/95 [&>h2]:mb-4 [&>h2]:mt-6",
+                    "[&>h3]:text-2xl [&>h3]:font-medium [&>h3]:text-foreground/90 [&>h3]:mb-3 [&>h3]:mt-5",
+                    "[&>p]:mb-4 [&>p]:leading-relaxed [&>p]:text-foreground/90",
+                    "[&>ul]:mb-6 [&>ul]:text-foreground/90",
+                    "[&>ol]:mb-6 [&>ol]:text-foreground/90",
                     // List styles are handled by standard CSS inheritance usually, 
                     // but we can add specific padding if needed. Tiptap usually nests lists properly.
                     "[&>ul]:pl-6",
                     "[&>ol]:pl-6",
-                    "[&_li]:mb-2 [&_li]:text-white/90",
-                    "[&>blockquote]:border-l-4 [&>blockquote]:border-purple-400 [&>blockquote]:pl-6 [&>blockquote]:py-3 [&>blockquote]:italic [&>blockquote]:text-white/80 [&>blockquote]:bg-purple-500/10 [&>blockquote]:backdrop-blur-sm [&>blockquote]:rounded-r-xl [&>blockquote]:my-6",
-                    "[&>pre]:bg-black/30 [&>pre]:backdrop-blur-sm [&>pre]:p-6 [&>pre]:rounded-xl [&>pre]:font-mono [&>pre]:text-sm [&>pre]:text-green-300 [&>pre]:overflow-x-auto [&>pre]:border [&>pre]:border-white/10",
-                    "[&>code]:bg-purple-500/20 [&>code]:px-2 [&>code]:py-1 [&>code]:rounded [&>code]:text-sm [&>code]:font-mono [&>code]:text-purple-200",
-                    "[&_a]:text-purple-300 [&_a]:underline [&_a]:decoration-purple-300/50 [&_a]:underline-offset-2",
-                    "[&_strong]:!text-white [&_b]:!text-white", // Force Bold white
-                    "[&_li::marker]:!text-white/90", // Force marker white
-                    "[&_li]:!text-white/90", // Force list text white
-
-                    "hover:[&_a]:decoration-purple-300 [&_a]:transition-colors"
+                    "[&_li]:mb-2 [&_li]:text-foreground/90",
+                    "[&_li::marker]:!text-foreground/70", // Force marker
+                    "[&_li]:!text-foreground/90", // Force list text
+                    "[&>blockquote]:border-l-4 [&>blockquote]:border-purple-400 [&>blockquote]:pl-6 [&>blockquote]:py-3 [&>blockquote]:italic [&>blockquote]:text-muted-foreground [&>blockquote]:bg-purple-500/5 [&>blockquote]:backdrop-blur-sm [&>blockquote]:rounded-r-xl [&>blockquote]:my-6",
+                    "[&>pre]:bg-muted/50 [&>pre]:backdrop-blur-sm [&>pre]:p-6 [&>pre]:rounded-xl [&>pre]:font-mono [&>pre]:text-sm [&>pre]:text-foreground [&>pre]:overflow-x-auto [&>pre]:border [&>pre]:border-gray-200 dark:[&>pre]:border-border",
+                    "[&>code]:bg-purple-500/10 [&>code]:px-2 [&>code]:py-1 [&>code]:rounded [&>code]:text-sm [&>code]:font-mono [&>code]:text-purple-600 dark:[&>code]:text-purple-300",
+                    "[&_a]:text-purple-500 dark:[&_a]:text-purple-300 [&_a]:underline [&_a]:decoration-purple-500/30 [&_a]:underline-offset-2",
+                    "[&_strong]:!text-foreground [&_b]:!text-foreground", // Force Bold
+                    "hover:[&_a]:decoration-purple-500 [&_a]:transition-colors"
                 ),
             },
         },
@@ -438,15 +443,15 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
 
     return (
         <div className="relative w-full">
-            <div className="w-full bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl shadow-black/40 overflow-hidden relative z-10">
+            <div className="w-full glass-card overflow-hidden relative z-10">
                 {/* Subtle inner glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-purple-500/5 rounded-3xl pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-purple-500/5 pointer-events-none" />
 
-                <div className="flex flex-wrap items-center gap-2 p-4 md:p-6 bg-white/5 backdrop-blur-xl border-b border-white/10 relative">
+                <div className="flex flex-wrap items-center gap-2 p-4 md:p-6 border-b border-gray-400 dark:border-border/50 bg-background/30 backdrop-blur-sm relative">
                     <div className="flex items-center gap-1">
                         <div className="flex items-center gap-2 mr-4 hidden md:flex">
-                            <div className="p-2 bg-purple-500/20 backdrop-blur-sm rounded-xl border border-purple-400/30">
-                                <Sparkles className="h-4 w-4 text-purple-300" />
+                            <div className="p-2 bg-purple-500/10 backdrop-blur-sm rounded-xl border border-purple-400/20">
+                                <Sparkles className="h-4 w-4 text-purple-500 dark:text-purple-300" />
                             </div>
                         </div>
 
@@ -456,7 +461,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-9 gap-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl hover:bg-white/20 text-white/90"
+                                    className="h-9 gap-1 bg-secondary/50 backdrop-blur-md border border-gray-400 dark:border-border rounded-xl hover:bg-secondary text-foreground"
                                 >
                                     <Type className="h-4 w-4" />
                                     <span className="text-xs">{activeFontSize}</span>
@@ -465,9 +470,9 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                             <DropdownMenuContent
                                 onCloseAutoFocus={(e) => e.preventDefault()}
                                 align="start"
-                                className="w-[120px] p-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-xl"
+                                className="w-[120px] p-1.5 backdrop-blur-xl border border-border shadow-2xl rounded-xl"
                             >
-                                <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 mb-0.5">
+                                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mb-0.5">
                                     Size
                                 </div>
                                 {fontSizes.map(({ label, value }) => (
@@ -485,7 +490,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+                        <Separator orientation="vertical" className="h-6 mx-3 bg-border hidden md:block" />
 
                         <ToolbarButton
                             onClick={() => toggleHeading(1)}
@@ -510,7 +515,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                         </ToolbarButton>
                     </div>
 
-                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-border hidden md:block" />
 
                     <div className="flex items-center gap-1">
                         <ToolbarButton
@@ -536,7 +541,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                         </ToolbarButton>
                     </div>
 
-                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-border hidden md:block" />
 
                     <div className="flex items-center gap-1">
                         <ToolbarButton
@@ -568,7 +573,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                         </ToolbarButton>
                     </div>
 
-                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-border hidden md:block" />
 
                     <div className="flex items-center gap-1">
                         <ToolbarButton
@@ -594,19 +599,12 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                         </ToolbarButton>
                     </div>
 
-                    <Separator orientation="vertical" className="h-6 mx-3 bg-white/20 hidden md:block" />
+                    <Separator orientation="vertical" className="h-6 mx-3 bg-border hidden md:block" />
 
                     <div className="flex items-center gap-1">
                         <ToolbarButton onClick={setLink} isActive={editor.isActive("link")} title="Insert Link">
                             <Link2 className="h-4 w-4" />
                         </ToolbarButton>
-                        {/* <ToolbarButton
-                            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                            isActive={editor.isActive("codeBlock")}
-                            title="Code Block"
-                        >
-                            <Code2 className="h-4 w-4" />
-                        </ToolbarButton> */}
                     </div>
                 </div>
 
@@ -614,26 +612,26 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                     <EditorContent editor={editor} />
                 </div>
 
-                <div className="flex items-center justify-between px-8 py-6 bg-white/5 backdrop-blur-xl border-t border-white/10 text-sm text-white/60 relative">
+                <div className="flex items-center justify-between px-8 py-6 border-t border-gray-400 dark:border-border/50 bg-muted/20 backdrop-blur-xl text-sm text-muted-foreground relative">
                     <div className="flex items-center gap-6">
                         <span className="flex items-center gap-2">
-                            <Type className="h-4 w-4 text-purple-300" />
-                            Words: <span className="text-white/90 font-medium">{wordCount}</span>
+                            <Type className="h-4 w-4 text-purple-500/70" />
+                            Words: <span className="text-foreground font-medium">{wordCount}</span>
                         </span>
                         <span className="flex items-center gap-2">
-                            Characters: <span className="text-white/90 font-medium">{charCount}</span>
+                            Characters: <span className="text-foreground font-medium">{charCount}</span>
                         </span>
                     </div>
-                    <div className="text-xs text-white/50 flex items-center gap-3">
-                        <kbd className="px-2 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                    <div className="text-xs text-muted-foreground flex items-center gap-3">
+                        <kbd className="px-2 py-1 bg-background backdrop-blur-sm rounded-lg text-xs border border-border shadow-sm">
                             {modifier}B
                         </kbd>
                         <span>Bold</span>
-                        <kbd className="px-2 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                        <kbd className="px-2 py-1 bg-background backdrop-blur-sm rounded-lg text-xs border border-border shadow-sm">
                             {modifier}I
                         </kbd>
                         <span>Italic</span>
-                        <kbd className="px-2 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-xs border border-white/20">
+                        <kbd className="px-2 py-1 bg-background backdrop-blur-sm rounded-lg text-xs border border-border shadow-sm">
                             {modifier}U
                         </kbd>
                         <span>Underline</span>

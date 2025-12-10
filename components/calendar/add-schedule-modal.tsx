@@ -165,14 +165,15 @@ export function AddScheduleModal({ isOpen, onClose, onSuccess, initialDate, init
         >
             <form id="add-schedule-form" onSubmit={handleSubmit} className="space-y-6 pt-2">
                 <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    <label htmlFor="schedule-title" className="text-sm font-semibold text-foreground">
                         제목
                     </label>
                     <input
+                        id="schedule-title"
                         name="title"
                         required
                         defaultValue={defaultTitle}
-                        className="w-full rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-padot-blue-500 transition-all font-medium placeholder:font-light"
+                        className="w-full rounded-lg bg-secondary border border-border px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium placeholder:font-light text-foreground"
                         placeholder="예) 인셉션 상영회"
                     />
                 </div>
@@ -180,74 +181,80 @@ export function AddScheduleModal({ isOpen, onClose, onSuccess, initialDate, init
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Start Date */}
                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <CalendarIcon size={14} className="text-padot-blue-500" />
+                        <label htmlFor="schedule-start-date" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <CalendarIcon size={14} className="text-primary" />
                             시작 시간
                         </label>
                         <div className="flex gap-2">
                             <input
+                                id="schedule-start-date"
                                 type="date"
                                 name="startDate_d"
                                 required
                                 defaultValue={defaultDate}
-                                className="flex-1 rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                                className="flex-1 rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                             />
                             <div className="relative w-28">
                                 <select
+                                    id="schedule-start-time"
                                     name="startDate_t"
-                                    className="w-full appearance-none rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                                    aria-label="시작 시간 선택"
+                                    className="w-full appearance-none rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                                     defaultValue={defaultStartTime}
                                 >
                                     {HOURS.map(h => (
                                         <option key={`start-${h}`} value={h}>{h}</option>
                                     ))}
                                 </select>
-                                <Clock size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <Clock size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                             </div>
                         </div>
                     </div>
 
                     {/* End Date */}
                     <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <CalendarIcon size={14} className="text-red-400" />
+                        <label htmlFor="schedule-end-date" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <CalendarIcon size={14} className="text-destructive" />
                             종료 시간
                         </label>
                         <div className="flex gap-2">
                             <input
+                                id="schedule-end-date"
                                 type="date"
                                 name="endDate_d"
                                 required
                                 defaultValue={isEditMode && initialData ? new Date(initialData.endDate).toISOString().split("T")[0] : defaultEndDateStr}
-                                className="flex-1 rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                                className="flex-1 rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                             />
                             <div className="relative w-28">
                                 <select
+                                    id="schedule-end-time"
                                     name="endDate_t"
-                                    className="w-full appearance-none rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-padot-blue-500"
+                                    aria-label="종료 시간 선택"
+                                    className="w-full appearance-none rounded-lg bg-secondary border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                                     defaultValue={defaultEndTime}
                                 >
                                     {HOURS.map(h => (
                                         <option key={`end-${h}`} value={h}>{h}</option>
                                     ))}
                                 </select>
-                                <Clock size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <Clock size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400 font-medium animate-pulse">
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive text-sm text-destructive font-medium animate-pulse">
                         ⚠️ {error}
                     </div>
                 )}
 
-                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex justify-end gap-3 pt-6 border-t border-border">
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent rounded-lg transition-colors"
                     >
                         취소
                     </button>

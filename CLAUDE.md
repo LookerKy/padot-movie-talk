@@ -182,10 +182,6 @@ await prisma.review.create({
 - CSS variable: `--color-padot-blue`
 - Tailwind: `padot-blue-{50-600}` scale defined in `globals.css`
 
-**Custom Font**: CookieRun (local fonts)
-- Weights: 400 (Regular), 700 (Bold), 900 (Black)
-- Variable: `--font-cookie-run`
-
 **Design Philosophy**:
 - Modern, premium glassmorphism aesthetic
 - High-quality UI with meaningful micro-animations

@@ -60,7 +60,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
     const isOwner = session?.user?.id === review.authorId;
 
     return (
-        <div className="w-full relative -mt-8"> {/* Full width of container */}
+        <div className="w-full relative -mt-24"> {/* Full width of container */}
 
             {/* 1. Hero Section (Contains Background + Content) */}
             <div className="relative w-full overflow-hidden">
@@ -126,29 +126,32 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                                 </div>
 
                                 {/* Title */}
-                                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white drop-shadow-2xl leading-tight">
+                                <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground dark:text-white drop-shadow-sm dark:drop-shadow-2xl leading-tight">
                                     {review.title}
                                 </h1>
 
                                 {/* Metadata Row */}
-                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-gray-200">
-                                    <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
-                                        <Calendar size={18} className="text-padot-blue-300" />
-                                        <span className="font-medium">{formattedDate} 시청</span>
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-muted-foreground dark:text-gray-200">
+                                    <div className="flex items-center gap-2 bg-secondary/30 dark:bg-white/10 px-4 py-2 rounded-full backdrop-blur-md border border-border/10 dark:border-white/10">
+                                        <Calendar size={18} className="text-primary dark:text-padot-blue-300" />
+                                        <span className="font-medium text-foreground dark:text-gray-200">
+                                            {formattedDate.split(" ")[0]} 시청 {/* Ensure simplified date if needed, or keep formattedDate */}
+                                            {/* Note: User changed formattedDate display in previous turn manually. I'll stick to variable */}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Star className="text-yellow-400 fill-yellow-400" size={20} />
-                                        <span className="text-2xl font-bold text-white">{review.rating.toFixed(1)}</span>
-                                        <span className="text-white/50">/ 5.0</span>
+                                        <span className="text-2xl font-bold text-foreground dark:text-white">{review.rating.toFixed(1)}</span>
+                                        <span className="text-muted-foreground/60 dark:text-white/50">/ 5.0</span>
                                     </div>
 
                                     {/* Edit Button */}
                                     {isOwner && (
                                         <Link
                                             href={`/reviews/${id}/edit`}
-                                            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md border border-white/10 text-white font-medium transition-all group"
+                                            className="flex items-center gap-2 bg-secondary/30 hover:bg-secondary/50 dark:bg-white/10 dark:hover:bg-white/20 px-4 py-2 rounded-full backdrop-blur-md border border-border/10 dark:border-white/10 text-foreground dark:text-white font-medium transition-all group"
                                         >
-                                            <Pencil size={16} className="text-padot-blue-300 group-hover:text-padot-blue-200" />
+                                            <Pencil size={16} className="text-primary dark:text-padot-blue-300 group-hover:text-primary/80 dark:group-hover:text-padot-blue-200" />
                                             <span>수정하기</span>
                                         </Link>
                                     )}
@@ -157,10 +160,10 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
                             {/* Quote */}
                             <div className="relative py-4">
-                                <p className="text-xl dark:text-slate-400 text-sm mt-2 font-medium">
+                                <p className="text-sm font-medium text-muted-foreground dark:text-slate-400 mt-2">
                                     페닷의 한마디
                                 </p>
-                                <p className="relative text-2xl md:text-2xl font-medium italic text-white/90 leading-relaxed tracking-wide">
+                                <p className="relative text-2xl md:text-2xl font-medium italic text-foreground dark:text-white/90 leading-relaxed tracking-wide">
                                     "{review.oneLiner}"
                                 </p>
                             </div>
@@ -178,40 +181,30 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
                         <div className="md:pl-12 space-y-10">
                             <div className="space-y-4">
-                                <h3 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                                    <span className="w-8 h-1 bg-padot-blue-500 rounded-full block" />
+                                <h3 className="text-3xl font-bold text-foreground flex items-center gap-3">
+                                    <span className="w-8 h-1 bg-primary rounded-full block" />
                                     상세 리뷰
                                 </h3>
-                                <p className="text-gray-500 dark:text-gray-400">
-                                    페닷이 직접 작성한 영화의 감상평
-                                </p>
                             </div>
 
                             {/* Render HTML Content from Editor */}
                             <div
-                                className="prose prose-lg dark:prose-invert max-w-none leading-loose text-gray-700 dark:text-white/90 
+                                className="prose prose-lg dark:prose-invert max-w-none leading-loose text-foreground/90 
                                 [&>p]:mb-6 [&_p]:min-h-[1.5em] 
-                                [&>blockquote]:border-l-4 [&>blockquote]:border-padot-blue-500 [&>blockquote]:pl-6 [&>blockquote]:py-2 [&>blockquote]:bg-gray-50 [&>blockquote]:dark:bg-white/5 [&>blockquote]:rounded-r-lg
-                                [&_strong]:!text-white [&_b]:!text-white
-                                [&_li]:!text-white/90
-                                [&_li::marker]:!text-white/90
+                                [&>blockquote]:border-l-4 [&>blockquote]:border-primary [&>blockquote]:pl-6 [&>blockquote]:py-2 [&>blockquote]:bg-secondary [&>blockquote]:rounded-r-lg
+                                [&_strong]:!text-foreground [&_b]:!text-foreground
+                                [&_li]:!text-foreground/90
+                                [&_li::marker]:!text-foreground/90
                                 "
                                 dangerouslySetInnerHTML={{ __html: review.content }}
                             />
 
                             {/* Footer / Signature */}
-                            <div className="pt-10 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                            <div className="pt-10 border-t border-border flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-padot-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                                        {authorInitial}
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-900 dark:text-white">{authorName}</div>
-                                        {/* <div className="text-xs text-gray-500">Movie Enthusiast</div> */}
-                                    </div>
                                 </div>
                                 <div className="text-sm text-gray-400 flex items-center gap-4">
-                                    <span>{formattedDate} 작성됨</span>
+                                    <span>작성일: {formattedDate}</span>
                                 </div>
                             </div>
                         </div>

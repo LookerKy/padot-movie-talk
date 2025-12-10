@@ -1,9 +1,9 @@
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface StarRatingProps {
-    rating: number; // 0.5 to 5.0
+    rating: number; // 0.0 to 5.0
     maxRating?: number;
     size?: number;
     className?: string;
@@ -20,19 +20,30 @@ export function StarRating({
     onChange,
 }: StarRatingProps) {
     const [hoverRating, setHoverRating] = useState<number | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const displayRating = hoverRating !== null ? hoverRating : rating;
 
-    const handleRatingClick = (value: number) => {
-        if (!readonly && onChange) {
-            onChange(value);
-        }
-    };
+    // Calculate percentage for the filled overlay
+    const percentage = Math.min(100, Math.max(0, (displayRating / maxRating) * 100));
 
-    const handleMouseEnter = (value: number) => {
-        if (!readonly) {
-            setHoverRating(value);
-        }
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (readonly || !containerRef.current) return;
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const width = rect.width;
+
+        // Calculate raw rating based on mouse position
+        let rawRating = (x / width) * maxRating;
+
+        // Snap to nearest 0.5
+        const snappedRating = Math.ceil(rawRating * 2) / 2;
+
+        // Clamp between 0.5 and maxRating
+        const finalRating = Math.min(maxRating, Math.max(0.5, snappedRating));
+
+        setHoverRating(finalRating);
     };
 
     const handleMouseLeave = () => {
@@ -41,99 +52,72 @@ export function StarRating({
         }
     };
 
-    const stars = [];
+    const handleClick = () => {
+        if (!readonly && onChange && hoverRating !== null) {
+            onChange(hoverRating);
+        }
+    };
 
-    for (let i = 1; i <= maxRating; i++) {
-        const isFull = i <= displayRating;
-        const isHalf = !isFull && i - 0.5 <= displayRating;
+    return (
+        <div
+            ref={containerRef}
+            className={cn("relative inline-flex items-center cursor-pointer", readonly && "cursor-default", className)}
+            style={{ width: maxRating * (size + 4), height: size }} // Approximate width based on gap
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleClick}
+        >
+            {/* Combined Layer: Background + Foreground (Per Star) */}
+            <div className="flex gap-1 relative z-0">
+                {Array.from({ length: maxRating }).map((_, i) => {
+                    // Calculate fill percentage for this specific star
+                    // e.g. rating 3.5:
+                    // i=0: (3.5 - 0) * 100 = 350 -> 100%
+                    // i=1: (3.5 - 1) * 100 = 250 -> 100%
+                    // i=2: (3.5 - 2) * 100 = 150 -> 100%
+                    // i=3: (3.5 - 3) * 100 = 50 -> 50%
+                    // i=4: (3.5 - 4) * 100 = -50 -> 0%
+                    const fillPercentage = Math.min(100, Math.max(0, (displayRating - i) * 100));
 
-        // Interactive logic for half stars usually requires more complex DOM or just per-star granularity.
-        // For simplicity, let's treat "click on star i" as selecting i.
-        // If we want half stars, we need left/right split.
-        // Let's implement left/right split for precision.
-
-        stars.push(
-            <div
-                key={i}
-                className={cn("relative inline-block", !readonly && "cursor-pointer")}
-                onMouseLeave={handleMouseLeave}
-            >
-                {/* Background Star */}
-                <Star
-                    size={size}
-                    className="text-gray-300 dark:text-gray-600"
-                    fill="transparent"
-                />
-
-                {/* Left Half Hitbox & Render */}
-                <div
-                    className="absolute top-0 left-0 h-full w-1/2 overflow-hidden z-10"
-                    onMouseEnter={() => handleMouseEnter(i - 0.5)}
-                    onClick={() => handleRatingClick(i - 0.5)}
-                >
-                    {(isFull || isHalf) && (
-                        <Star
-                            size={size}
-                            className="text-yellow-400 block"
-                            fill="currentColor"
-                        />
-                    )}
-                </div>
-
-                {/* Right Half Hitbox & Render */}
-                <div
-                    className="absolute top-0 right-0 h-full w-1/2 overflow-hidden z-20"
-                    onMouseEnter={() => handleMouseEnter(i)}
-                    onClick={() => handleRatingClick(i)}
-                >
-                    {isFull && (
-                        <div className="absolute top-0 right-0 h-full w-full overflow-hidden" style={{ transform: "translateX(100%)", /* This hack effectively shows the right half by clipping based on parent */ }}>
-                            {/* Wait, the "Right Half" div is effectively the right side of the container. 
-                                 Rendering the full star inside it but aligning it? 
-                                 
-                                 Actually, standard approach:
-                                 Full star render (if full).
-                                 
-                                 Let's simplify:
-                                 Render the "Filled Star" overlay based on props.
-                                 Have 2 hitboxes (divs) over it for interaction.
-                              */}
-                        </div>
-                    )}
-                    {/* Simplified Render Logic Overlay based on State */}
-                </div>
-
-                {/* Filled Star Overlay (Visuals) */}
-                <div className="absolute top-0 left-0 pointer-events-none w-full h-full">
-                    {(isFull || isHalf) && (
-                        <div className="overflow-hidden" style={{ width: isFull ? "100%" : "50%" }}>
+                    return (
+                        <div key={`star-container-${i}`} className="relative" style={{ width: size, height: size }}>
+                            {/* Background Star (Empty) */}
                             <Star
                                 size={size}
-                                className="text-yellow-400"
-                                fill="currentColor"
+                                className="text-gray-600 dark:text-gray-600 absolute inset-0"
+                                fill="transparent"
+                                strokeWidth={1.5}
                             />
+
+                            {/* Foreground Star (Filled) - Clipped */}
+                            <div
+                                className="absolute inset-0 overflow-hidden"
+                                style={{ width: `${fillPercentage}%` }}
+                            >
+                                <Star
+                                    size={size}
+                                    className="text-yellow-400 border-none icon-filled"
+                                    fill="currentColor"
+                                    strokeWidth={0}
+                                />
+                            </div>
+
+                            {/* Optional Stroke for Filled (to match border style) */}
+                            <div
+                                className="absolute inset-0 overflow-hidden pointer-events-none"
+                                style={{ width: `${fillPercentage}%` }}
+                            >
+                                <Star
+                                    size={size}
+                                    className="text-yellow-500/50"
+                                    fill="transparent"
+                                    strokeWidth={1.5}
+                                />
+                            </div>
                         </div>
-                    )}
-                </div>
-
-                {/* Hitboxes for Interaction */}
-                {!readonly && (
-                    <>
-                        <div
-                            className="absolute top-0 left-0 w-1/2 h-full z-10"
-                            onMouseEnter={() => handleMouseEnter(i - 0.5)}
-                            onClick={() => handleRatingClick(i - 0.5)}
-                        />
-                        <div
-                            className="absolute top-0 right-0 w-1/2 h-full z-10"
-                            onMouseEnter={() => handleMouseEnter(i)}
-                            onClick={() => handleRatingClick(i)}
-                        />
-                    </>
-                )}
+                    );
+                })}
             </div>
-        );
-    }
-
-    return <div className={cn("flex gap-0.5", className)}>{stars}</div>;
+        </div>
+    );
 }

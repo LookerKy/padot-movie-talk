@@ -50,7 +50,46 @@ export async function deleteTagAction(tagId: string) {
 
         return { success: true };
     } catch (error) {
-        console.error("Delete Tag Error:", error);
         return { success: false, error: "태그 삭제 중 오류가 발생했습니다." };
+    }
+}
+
+export async function createTagAction(tagName: string) {
+    try {
+        await requireAuth();
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { success: false, error: error.message };
+        }
+        throw error;
+    }
+
+    try {
+        const existingTag = await prisma.tag.findUnique({
+            where: { name: tagName }
+        });
+
+        if (existingTag) {
+            return { success: true, tag: existingTag };
+        }
+
+        // Helper to get random color (duplicated from review.ts, should ideally be shared)
+        // For simplicity, importing TAG_COLORS from utils is fine, but getRandomTagColor logic stays here
+        const { TAG_COLORS } = await import("@/lib/utils");
+        const color = TAG_COLORS[Math.floor(Math.random() * TAG_COLORS.length)];
+
+        const newTag = await prisma.tag.create({
+            data: {
+                name: tagName,
+                color: color
+            }
+        });
+
+        revalidatePath("/reviews/new"); // Update tag lists
+        return { success: true, tag: newTag };
+
+    } catch (error) {
+        console.error("Create Tag Error:", error);
+        return { success: false, error: "태그 생성 중 오류가 발생했습니다." };
     }
 }

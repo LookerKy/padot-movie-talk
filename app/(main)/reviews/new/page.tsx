@@ -1,31 +1,11 @@
-"use client";
+import { getTagsAction } from "@/app/actions/tag";
+import { NewReviewClient } from "./client";
 
-import { useState } from "react";
-import { MovieSearch } from "@/components/reviews/movie-search";
-import { ReviewForm } from "@/components/reviews/review-form";
-import { TMDBMovieSearchResult } from "@/lib/tmdb";
+export const dynamic = "force-dynamic";
 
-export default function NewReviewPage() {
-    const [selectedMovie, setSelectedMovie] = useState<TMDBMovieSearchResult | null>(null);
-    const [isManualMode, setIsManualMode] = useState(false);
+export default async function NewReviewPage() {
+    const tagRes = await getTagsAction();
+    const availableTags = tagRes.success && tagRes.data ? tagRes.data : [];
 
-    return (
-        <div className="container mx-auto px-4 py-20 max-w-3xl">
-            {!selectedMovie && !isManualMode ? (
-                <MovieSearch
-                    onSelect={setSelectedMovie}
-                    onManualRegister={() => setIsManualMode(true)}
-                />
-            ) : (
-                <ReviewForm
-                    movie={selectedMovie || undefined}
-                    isManualMode={isManualMode}
-                    onCancel={() => {
-                        setSelectedMovie(null);
-                        setIsManualMode(false);
-                    }}
-                />
-            )}
-        </div>
-    );
+    return <NewReviewClient availableTags={availableTags} />;
 }

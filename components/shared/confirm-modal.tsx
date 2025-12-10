@@ -53,13 +53,13 @@ export function ConfirmModal({
 
             {/* Modal Content */}
             <div className={cn(
-                "relative bg-zinc-900/90 border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl transform transition-all duration-300",
+                "relative bg-background/90 backdrop-blur-md border border-border p-6 rounded-2xl w-full max-w-sm shadow-2xl transform transition-all duration-300",
                 isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
             )}>
                 <button
                     onClick={onClose}
                     disabled={isLoading}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+                    className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
                 >
                     <X size={20} />
                 </button>
@@ -67,21 +67,21 @@ export function ConfirmModal({
                 <div className="flex flex-col items-center text-center gap-4">
                     <div className={cn(
                         "p-3 rounded-full",
-                        isDestructive ? "bg-red-500/10 text-red-500" : "bg-padot-blue-500/10 text-padot-blue-500"
+                        isDestructive ? "bg-red-500/10 text-red-500" : "bg-primary/10 text-primary"
                     )}>
                         <AlertTriangle size={24} />
                     </div>
 
                     <div className="space-y-2">
-                        <h3 className="text-lg font-bold text-white">{title}</h3>
-                        <p className="text-sm text-gray-400 whitespace-pre-line">{description}</p>
+                        <h3 className="text-lg font-bold text-foreground">{title}</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-line">{description}</p>
                     </div>
 
                     <div className="flex items-center gap-3 w-full mt-2">
                         <button
                             onClick={onClose}
                             disabled={isLoading}
-                            className="flex-1 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 transition-colors font-medium border border-white/5"
+                            className="flex-1 px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground transition-colors font-medium"
                         >
                             {cancelText}
                         </button>
@@ -92,7 +92,7 @@ export function ConfirmModal({
                                 "flex-1 px-4 py-2 rounded-xl font-medium transition-colors border",
                                 isDestructive
                                     ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20"
-                                    : "bg-padot-blue-500/10 hover:bg-padot-blue-500/20 text-padot-blue-500 border-padot-blue-500/20"
+                                    : "bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
                             )}
                         >
                             {isLoading ? "처리 중..." : confirmText}

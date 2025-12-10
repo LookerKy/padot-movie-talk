@@ -9,15 +9,16 @@ import { format } from "date-fns";
 
 interface MovieCardProps {
     review: Review;
+    priority?: boolean;
 }
 
-export function MovieCard({ review }: MovieCardProps) {
+export function MovieCard({ review, priority = false }: MovieCardProps) {
     const posterSrc = review.posterUrl || "/placeholder-poster.png";
     const formattedDate = format(new Date(review.watchedAt), "yyyy-MM-dd");
 
     return (
-        <Link href={`/reviews/${review.id}`} className="block h-full">
-            <GlassCard className="group relative overflow-hidden p-0 h-full flex flex-col bg-white/10 dark:bg-black/20 border-white/20 hover:border-padot-blue-300">
+        <Link href={`/reviews/${review.id}`} className="block h-full" prefetch={false}>
+            <GlassCard className="group relative overflow-hidden p-0 h-full flex flex-col hover:border-padot-blue-300 dark:hover:border-padot-blue-500/50">
                 {/* Poster Image Container */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden">
                     {review.posterUrl ? (
@@ -27,6 +28,7 @@ export function MovieCard({ review }: MovieCardProps) {
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            priority={priority}
                         />
                     ) : (
                         <div className="w-full h-full bg-gray-900 flex items-center justify-center text-gray-500 font-medium">
@@ -51,6 +53,7 @@ export function MovieCard({ review }: MovieCardProps) {
                                 src="/dot-badge-clean2.png"
                                 alt="Dotchelin"
                                 fill
+                                sizes="32px"
                                 className="object-contain"
 
                             />
@@ -67,7 +70,7 @@ export function MovieCard({ review }: MovieCardProps) {
                 {/* Content Body */}
                 <div className="p-4 flex flex-col gap-2 flex-grow">
                     <div className="flex flex-col gap-1.5">
-                        <h3 className="text-lg font-bold truncate text-gray-900 dark:text-white group-hover:text-padot-blue-600 dark:group-hover:text-padot-blue-400 transition-colors">
+                        <h3 className="text-lg font-bold truncate text-foreground group-hover:text-primary transition-colors">
                             {review.title}
                         </h3>
                         {/* Tags */}
@@ -76,7 +79,7 @@ export function MovieCard({ review }: MovieCardProps) {
                                 <Badge
                                     key={tag.id}
                                     variant="secondary"
-                                    className="text-white"
+                                    className="text-white dark:text-white"
                                     style={{ backgroundColor: tag.color || TAG_COLORS[tag.name.length % TAG_COLORS.length] }}
                                 >
                                     {tag.name}
@@ -86,7 +89,7 @@ export function MovieCard({ review }: MovieCardProps) {
                     </div>
 
                     <div className="flex items-center justify-between mt-auto pt-2">
-                        <span className="text-xs text-gray-500 font-medium">
+                        <span className="text-xs text-muted-foreground font-medium">
                             시청일: {formattedDate}
                         </span>
                     </div>

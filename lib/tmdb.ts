@@ -1,11 +1,7 @@
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
+// Validated: TMDB_API_KEY check moved to server actions (app/actions/tmdb.ts) to prevent client-side warnings.
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"; // Medium size for posters
-
-if (!TMDB_API_KEY) {
-    console.warn("TMDB_API_KEY is not set in environment variables.");
-}
 
 export type TMDBMovieSearchResult = {
     id: number;

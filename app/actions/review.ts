@@ -79,12 +79,8 @@ export async function submitReview(data: ReviewFormValues) {
                     connect: { id: session.user.id }
                 },
                 tags: {
-                    connectOrCreate: tags.map((tag) => ({
-                        where: { name: tag },
-                        create: {
-                            name: tag,
-                            color: getRandomTagColor()
-                        },
+                    connect: tags.map((tag) => ({
+                        name: tag
                     })),
                 },
             },
@@ -140,12 +136,8 @@ export async function updateReview(reviewId: string, data: ReviewFormValues) {
                 director: rest.director || "",
                 tags: {
                     set: [], // Clear existing relations
-                    connectOrCreate: tags.map((tag) => ({
-                        where: { name: tag },
-                        create: {
-                            name: tag,
-                            color: getRandomTagColor()
-                        },
+                    connect: tags.map((tag) => ({
+                        name: tag
                     })),
                 },
             },

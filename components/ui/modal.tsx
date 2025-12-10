@@ -47,21 +47,21 @@ export function Modal({ isOpen, onClose, children, title, description, className
             {/* Content */}
             <div
                 className={cn(
-                    "relative w-full max-w-lg transform overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl transition-all border border-white/10",
+                    "relative w-full max-w-lg transform overflow-hidden rounded-2xl bg-background p-6 shadow-2xl transition-all border border-border",
                     className
                 )}
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-4">
                     <div className="space-y-1">
-                        {title && <h3 className="text-xl font-bold leading-6 text-gray-900 dark:text-white">{title}</h3>}
-                        {description && <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>}
+                        {title && <h3 className="text-xl font-bold leading-6 text-foreground">{title}</h3>}
+                        {description && <p className="text-sm text-muted-foreground">{description}</p>}
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-full p-1 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                        className="rounded-full p-1 hover:bg-accent transition-colors"
                     >
-                        <X className="h-5 w-5 text-gray-500" />
+                        <X className="h-5 w-5 text-muted-foreground" />
                     </button>
                 </div>
                 {children}

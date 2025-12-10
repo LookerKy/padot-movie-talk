@@ -14,7 +14,7 @@ export function LayoutWrapper({ children, user }: { children: React.ReactNode; u
     const isAuthPage = pathname === "/login" || pathname === "/register";
 
     return (
-        <div className="min-h-screen text-white font-sans selection:bg-purple-500/30 selection:text-white relative flex flex-col">
+        <div className="min-h-screen font-sans selection:bg-primary/30 selection:text-foreground relative flex flex-col">
 
             {/* Ambient Background Glow (Global) -> Removed to prevent double background */}
 
