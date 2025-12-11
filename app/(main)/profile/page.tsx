@@ -6,7 +6,7 @@ import { User, Shield } from "lucide-react";
 export default async function ProfilePage() {
     const session = await getSession();
     if (!session || !session.user) {
-        redirect("/");
+        redirect("/login");
     }
 
     return (

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import {
-    Home,
+    Crown,
     Calendar,
     BarChart2,
     PenLine,
@@ -79,7 +79,7 @@ export const FloatingNav = React.memo(function FloatingNav({ user }: FloatingNav
     };
 
     const navItems = [
-        { href: "/", icon: Home, label: "어워즈" },
+        { href: "/", icon: Crown, label: "어워즈" },
         { href: "/calendar", icon: Calendar, label: "캘린더" },
         { href: "/stats", icon: BarChart2, label: "통계" },
     ];
