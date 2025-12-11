@@ -222,23 +222,39 @@ export const useReviewListStore = create<ReviewListState>((set, get) => ({
             const limit = 12;
             const firstBatch = initialReviews.slice(0, limit);
 
-            set({
+            set((state) => ({
                 allReviews: initialReviews,
                 filteredReviews: initialReviews, // Initially no filters
                 reviews: firstBatch,
                 hasMore: initialReviews.length > limit,
-                page: 1
-            });
+                page: 1,
+                // Reset filters but keep viewMode
+                filters: {
+                    ...state.filters,
+                    minRating: null,
+                    tagIds: [],
+                    isMustWatch: false,
+                }
+            }));
         } else {
             // Server Mode or First Page
-            if (reviews.length === 0) {
-                set({
-                    reviews: initialReviews,
-                    allReviews: [], // Ensure client cache is empty
-                    filteredReviews: [],
-                    hasMore: true
-                });
-            }
+            // ALWAYS update with fresh server data on mount/initialize
+            // Use totalCount to accurately determine if there are more pages server-side
+            set((state) => ({
+                reviews: initialReviews,
+                allReviews: [], // Ensure client cache is empty (Server Mode)
+                filteredReviews: [],
+                hasMore: totalCount > initialReviews.length,
+                page: 1,
+                // Reset filters but keep viewMode
+                filters: {
+                    ...state.filters,
+                    minRating: null,
+                    tagIds: [],
+                    isMustWatch: false,
+                }
+            }));
         }
     }
 }));
+

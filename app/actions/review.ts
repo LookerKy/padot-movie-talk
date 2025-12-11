@@ -92,6 +92,9 @@ export async function submitReview(data: ReviewFormValues) {
     }
 
     revalidatePath("/reviews");
+    revalidatePath("/");
+    revalidatePath("/calendar");
+    revalidatePath("/stats");
     return { success: true, reviewId };
 }
 
@@ -149,6 +152,9 @@ export async function updateReview(reviewId: string, data: ReviewFormValues) {
 
     revalidatePath("/reviews");
     revalidatePath(`/reviews/${reviewId}`);
+    revalidatePath("/");
+    revalidatePath("/calendar");
+    revalidatePath("/stats");
     return { success: true, reviewId };
 }
 

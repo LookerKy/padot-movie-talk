@@ -23,7 +23,7 @@ export default async function EditReviewPage({ params }: PageProps) {
             where: { id },
             include: { tags: true }
         }),
-        prisma.tag.findMany({ select: { id: true, name: true } })
+        prisma.tag.findMany({ select: { id: true, name: true, color: true } })
     ]);
 
     if (!review) {

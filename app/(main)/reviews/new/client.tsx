@@ -6,7 +6,7 @@ import { ReviewForm } from "@/components/reviews/review-form";
 import { TMDBMovieSearchResult } from "@/lib/tmdb";
 
 interface NewReviewClientProps {
-    availableTags: { id: string; name: string }[];
+    availableTags: { id: string; name: string; color?: string | null }[];
 }
 
 export function NewReviewClient({ availableTags }: NewReviewClientProps) {

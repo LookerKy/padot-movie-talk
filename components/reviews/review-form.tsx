@@ -16,6 +16,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useReviewStore } from "@/store/use-review-store";
+import { useCalendarStore } from "@/store/use-calendar-store";
 import { cn } from "@/lib/utils";
 
 interface ReviewFormProps {
@@ -23,17 +24,17 @@ interface ReviewFormProps {
     initialData?: ReviewFormValues & { id: string };
     onCancel?: () => void;
     backLink?: string;
-    availableTags?: { id: string; name: string }[];
+    availableTags?: { id: string; name: string; color?: string | null }[];
     isManualMode?: boolean;
 }
 
-const DEFAULT_TAGS: { id: string; name: string }[] = [];
+const DEFAULT_TAGS: { id: string; name: string; color?: string | null }[] = [];
 
 export function ReviewForm({ movie, initialData, onCancel, backLink, availableTags: initialAvailableTags = DEFAULT_TAGS, isManualMode = false }: ReviewFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
-    const [availableTags, setAvailableTags] = useState<{ id: string; name: string }[]>(initialAvailableTags);
+    const [availableTags, setAvailableTags] = useState<{ id: string; name: string; color?: string | null }[]>(initialAvailableTags);
     // Split input state
     const [intVal, setIntVal] = useState("0");
     const [decVal, setDecVal] = useState("0");
@@ -210,7 +211,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
         setAvailableTags(prev => prev.filter(tag => tag.id !== deletedTagId));
     };
 
-    const handleTagCreate = (newTag: { id: string; name: string }) => {
+    const handleTagCreate = (newTag: { id: string; name: string; color?: string | null }) => {
         setAvailableTags(prev => [...prev, newTag]);
     };
 
@@ -231,6 +232,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
             setIsSubmitting(false);
         } else if (res && res.success) {
             // Success! 
+            useCalendarStore.getState().actions.invalidateCache();
             // If edit, redirect to detail page (res.reviewId might not be returned in update, but we have initialData.id)
             const targetId = isEditMode ? initialData?.id : res.reviewId;
 

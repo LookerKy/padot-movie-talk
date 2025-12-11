@@ -76,13 +76,13 @@ interface GlassTiptapEditorProps {
 }
 
 const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEditorProps) => {
-    const [activeFontSize, setActiveFontSize] = useState("18px")
+    const [activeFontSize, setActiveFontSize] = useState("24px")
     // 사용자가 마지막으로 "설정한" 폰트 사이즈 (구조 변경 시 복원용)
-    const [userSetFontSize, setUserSetFontSize] = useState("18px")
+    const [userSetFontSize, setUserSetFontSize] = useState("24px")
     // 트랜잭션 핸들러 내에서 최신 state 접근을 위한 ref
-    const userSetFontSizeRef = React.useRef("18px")
+    const userSetFontSizeRef = React.useRef("24px")
     // 트랜잭션 간 폰트 사이즈 추적 (리스트 변환 시 마크 소실 방지용)
-    const lastKnownFontSizeRef = React.useRef("18px")
+    const lastKnownFontSizeRef = React.useRef("24px")
 
     // 플랫폼 감지 (Mac 여부)
     const [isMac, setIsMac] = useState(false)
@@ -131,7 +131,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
             attributes: {
                 class: cn(
                     "min-h-[500px] p-8 focus:outline-none relative z-10",
-                    "prose prose-lg max-w-none font-sans dark:prose-invert",
+                    "prose prose-lg max-w-none font-sans dark:prose-invert text-[24px]",
                     "transition-all duration-300",
                     "text-foreground leading-relaxed",
                     "selection:bg-purple-500/30 selection:text-foreground",
@@ -168,7 +168,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
 
             if (!isInStructuralBlock) {
                 // 리스트 내부여도 텍스트 스타일이 있으면 그것을 표시
-                const currentSize = attrs.fontSize || '18px';
+                const currentSize = attrs.fontSize || '24px';
                 setActiveFontSize(currentSize);
 
                 // 유효한 폰트 사이즈가 감지되면 Ref 업데이트
@@ -189,7 +189,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                 const targetSize = lastKnownFontSizeRef.current;
 
                 // 현재 폰트가 없고, 이전 폰트가 기본값이 아닐 때 복원 시도
-                if (targetSize && targetSize !== '18px') {
+                if (targetSize && targetSize !== '24px') {
                     // 무한 루프 방지 및 안전한 실행을 위해 setTimeout 사용
                     setTimeout(() => {
                         if (editor.isDestroyed || editor.isActive('heading')) return; // 헤더는 제외
@@ -218,7 +218,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                 const userPreferredSize = userSetFontSizeRef.current;
 
                 // 현재 폰트 사이즈가 없고(기본 18px 상태), 사용자가 설정한 폰트가 18px이 아닐 때
-                if (!currentFontSize && userPreferredSize && userPreferredSize !== '18px') {
+                if (!currentFontSize && userPreferredSize && userPreferredSize !== '24px') {
                     // 즉시 마크 적용 (setTimeout 없이, 다음 입력부터 적용되도록)
                     // 주의: onTransaction 내에서 직접 dispatch하면 루프 위험이 있으므로
                     // setTimeout을 사용하여 비동기로 처리
