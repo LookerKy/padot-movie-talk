@@ -59,7 +59,7 @@ export function MovieListItem({ review }: MovieListItemProps) {
 
                     {/* Tags */}
                     <div className="col-span-4 md:col-span-3 flex gap-2">
-                        {review.tags.slice(0, 2).map((tag) => (
+                        {review.tags.slice(0, 2).map((tag: any) => (
                             <Badge
                                 key={tag.id}
                                 variant="outline"
