@@ -21,7 +21,7 @@ export async function getGlobalReviewStatsAction() {
         const tagCounts: Record<string, number> = {};
         let mustWatchCount = 0;
 
-        allReviews.forEach(r => {
+        allReviews.forEach((r: { rating: number; isMustWatch: boolean; tags: { name: string }[] }) => {
             // Rating Dist (Floor)
             const floorRating = Math.floor(r.rating);
             ratingDist[floorRating] = (ratingDist[floorRating] || 0) + 1;
@@ -30,7 +30,7 @@ export async function getGlobalReviewStatsAction() {
             if (r.isMustWatch) mustWatchCount++;
 
             // Tags
-            r.tags.forEach(t => {
+            r.tags.forEach((t: { name: string }) => {
                 tagCounts[t.name] = (tagCounts[t.name] || 0) + 1;
             });
         });
