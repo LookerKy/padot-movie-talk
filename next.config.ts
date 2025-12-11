@@ -9,9 +9,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  turbopack: {
-    root: '/Users/ino/project/react/padot_movie_awards',
-  },
+
 };
 
 export default nextConfig;

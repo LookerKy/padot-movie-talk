@@ -80,7 +80,7 @@ export function StatsView() {
                     </div>
                     <div className="absolute bottom-4 right-4 w-20 h-20 opacity-40 group-hover:opacity-60 transition-opacity">
                         <Image
-                            src="/dot-badge-clean2.png"
+                            src="/dot-badge-clean2.webp"
                             alt="Dotchelin Badge"
                             fill
                             className="object-contain"

@@ -27,9 +27,9 @@ export type TMDBMovieDetails = {
 
 // Server actions moved to app/actions/tmdb.ts
 
-export function getPosterUrl(path: string | null) {
-    if (!path) return "/placeholder-poster.png"; // You might want a better placeholder
-    return `${TMDB_IMAGE_BASE_URL}${path}`;
+export function getPosterUrl(path?: string | null) {
+    if (!path) return "";
+    return `https://image.tmdb.org/t/p/w500${path}`;
 }
 
 export function getDirectorName(details: TMDBMovieDetails): string {

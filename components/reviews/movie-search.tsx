@@ -117,6 +117,7 @@ export function MovieSearch({ onSelect, onManualRegister }: MovieSearchProps) {
                                         fill
                                         sizes="100px"
                                         className="object-cover"
+                                        unoptimized
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">

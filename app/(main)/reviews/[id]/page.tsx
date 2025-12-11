@@ -50,7 +50,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
     // Format dates and handle optional fields
     const formattedDate = format(new Date(review.watchedAt), "yyyy-MM-dd");
-    const posterSrc = review.posterUrl || "/placeholder-poster.png";
+    // const posterSrc = review.posterUrl || "/placeholder-poster.png";
 
     // Author info from DB
     const authorName = review.author?.name || review.author?.username || "Unknown Author";
@@ -66,14 +66,17 @@ export default async function ReviewDetailPage({ params }: PageProps) {
             <div className="relative w-full overflow-hidden">
                 {/* Background - Contained within Hero Section */}
                 <div className="absolute inset-0 z-0">
-                    <Image
-                        src={posterSrc}
-                        alt="Backdrop"
-                        fill
-                        className="object-cover opacity-40 blur-3xl scale-110"
-                        priority
-                        sizes="100vw"
-                    />
+                    {review.posterUrl && (
+                        <Image
+                            src={review.posterUrl}
+                            alt="Backdrop"
+                            fill
+                            className="object-cover opacity-40 blur-3xl scale-110"
+                            priority
+                            sizes="100vw"
+                            unoptimized
+                        />
+                    )}
                     {/* Gradient Overlay for smooth transition to bottom */}
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-50 dark:to-slate-950" />
                 </div>
@@ -92,6 +95,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                                         className="object-cover"
                                         priority
                                         sizes="(max-width: 768px) 100vw, 300px"
+                                        unoptimized
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-gray-900 flex items-center justify-center text-gray-500">

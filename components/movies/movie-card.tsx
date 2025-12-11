@@ -13,7 +13,7 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ review, priority = false }: MovieCardProps) {
-    const posterSrc = review.posterUrl || "/placeholder-poster.png";
+    // const posterSrc = review.posterUrl || "/placeholder-poster.png";
     const formattedDate = format(new Date(review.watchedAt), "yyyy-MM-dd");
 
     return (
@@ -29,6 +29,7 @@ export function MovieCard({ review, priority = false }: MovieCardProps) {
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                             priority={priority}
+                            unoptimized
                         />
                     ) : (
                         <div className="w-full h-full bg-gray-900 flex items-center justify-center text-gray-500 font-medium">
@@ -50,7 +51,7 @@ export function MovieCard({ review, priority = false }: MovieCardProps) {
                     {review.isMustWatch && (
                         <div className="absolute top-2 left-2 z-20 w-8 h-8 filter drop-shadow-lg animate-in fade-in zoom-in duration-300">
                             <Image
-                                src="/dot-badge-clean2.png"
+                                src="/dot-badge-clean2.webp"
                                 alt="Dotchelin"
                                 fill
                                 sizes="32px"

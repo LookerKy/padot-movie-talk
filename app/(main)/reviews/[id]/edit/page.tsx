@@ -47,7 +47,7 @@ export default async function EditReviewPage({ params }: PageProps) {
         content: review.content,
         watchedAt: review.watchedAt, // Date type is fine here as we handle it in form
         isMustWatch: review.isMustWatch,
-        tags: review.tags.map(t => t.name),
+        tags: review.tags.map((t: { name: string }) => t.name),
         tmdbId: review.tmdbId ?? undefined
     };
 

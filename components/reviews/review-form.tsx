@@ -272,6 +272,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                                 sizes="128px"
                                 priority
                                 className="object-cover"
+                                unoptimized
                             />
                         ) : (
                             <div className="w-full h-full bg-gray-900 flex items-center justify-center text-xs text-gray-500 flex-col gap-2 p-2 text-center">
@@ -517,7 +518,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                     )}>
                         <div className="relative w-9 h-9 flex-shrink-0">
                             <Image
-                                src="/dot-badge-clean2.png"
+                                src="/dot-badge-clean2.webp"
                                 alt="Dotchelin"
                                 fill
                                 sizes="36px"

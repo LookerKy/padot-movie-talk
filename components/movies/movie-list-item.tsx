@@ -13,7 +13,7 @@ interface MovieListItemProps {
 
 export function MovieListItem({ review }: MovieListItemProps) {
     const formattedDate = format(new Date(review.watchedAt), "yyyy-MM-dd");
-    const posterSrc = review.posterUrl || "/placeholder-poster.png";
+    // const posterSrc = review.posterUrl || "/placeholder-poster.png";
 
     return (
         <Link href={`/reviews/${review.id}`} className="block" prefetch={false}>
@@ -22,13 +22,18 @@ export function MovieListItem({ review }: MovieListItemProps) {
                 {/* 1. Hover Background (Poster Blur) */}
                 <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <div className="absolute inset-0 bg-black/60 z-10" /> {/* Dark overlay for readability */}
-                    <Image
-                        src={posterSrc}
-                        alt=""
-                        fill
-                        sizes="100px" // Only used for hover blur, small size is fine
-                        className="object-cover filter blur-xl scale-110"
-                    />
+                    {review.posterUrl ? (
+                        <Image
+                            src={review.posterUrl}
+                            alt=""
+                            fill
+                            sizes="100px" // Only used for hover blur, small size is fine
+                            className="object-cover filter blur-xl scale-110"
+                            unoptimized
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-900" />
+                    )}
                 </div>
 
                 {/* 2. Hover Content (One-liner) */}
