@@ -76,7 +76,7 @@ export function MovieCard({ review, priority = false }: MovieCardProps) {
                         </h3>
                         {/* Tags */}
                         <div className="flex flex-wrap gap-1.5">
-                            {review.tags.slice(0, 3).map((tag) => (
+                            {review.tags.slice(0, 3).map((tag: any) => (
                                 <Badge
                                     key={tag.id}
                                     variant="secondary"
