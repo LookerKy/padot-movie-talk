@@ -241,7 +241,6 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                     removeDraft(movie.id);
                 }
                 router.push(`/reviews/${targetId}`);
-                router.refresh();
             }, 0);
         }
     };

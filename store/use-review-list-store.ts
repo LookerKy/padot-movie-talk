@@ -239,12 +239,15 @@ export const useReviewListStore = create<ReviewListState>((set, get) => ({
         } else {
             // Server Mode or First Page
             // ALWAYS update with fresh server data on mount/initialize
+            const limit = 12;
+            const firstBatch = initialReviews.slice(0, limit);
+
             // Use totalCount to accurately determine if there are more pages server-side
             set((state) => ({
-                reviews: initialReviews,
+                reviews: firstBatch,
                 allReviews: [], // Ensure client cache is empty (Server Mode)
                 filteredReviews: [],
-                hasMore: totalCount > initialReviews.length,
+                hasMore: totalCount > firstBatch.length,
                 page: 1,
                 // Reset filters but keep viewMode
                 filters: {
