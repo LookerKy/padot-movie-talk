@@ -52,6 +52,8 @@ export const FloatingNav = React.memo(function FloatingNav({ user }: FloatingNav
     const router = useRouter();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Hooks restored
     const isZenMode = useReviewStore((state) => state.isZenMode);
     const { theme, setTheme } = useTheme();
 
@@ -139,16 +141,7 @@ export const FloatingNav = React.memo(function FloatingNav({ user }: FloatingNav
 
                 {/* 3. Right Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                        className="p-2 rounded-full hover:bg-secondary/20 transition-colors relative outline-none focus:outline-none focus:ring-0"
-                    >
-                        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                        <Moon className="absolute top-2 left-2 h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                        <span className="sr-only">Toggle theme</span>
-                    </button>
-
-                    {/* Refined Write Button (Desktop Only) */}
+                    {/* 1. Refined Write Button (Desktop Only) */}
                     {user && (
                         <Link
                             href="/reviews/new"
@@ -161,7 +154,7 @@ export const FloatingNav = React.memo(function FloatingNav({ user }: FloatingNav
                         </Link>
                     )}
 
-                    {/* User Profile / Login */}
+                    {/* 2. User Profile / Login */}
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -198,8 +191,6 @@ export const FloatingNav = React.memo(function FloatingNav({ user }: FloatingNav
                                     </>
                                 )}
 
-
-
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
                                     <LogOut className="mr-2 h-4 w-4" />
@@ -215,6 +206,24 @@ export const FloatingNav = React.memo(function FloatingNav({ user }: FloatingNav
                             로그인
                         </Link>
                     )}
+
+                    {/* 3. Theme Toggle (Moved to End) */}
+                    <button
+                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        className="relative w-14 h-7 rounded-full bg-secondary/50 border border-border/50 shadow-inner flex items-center px-1 focus:outline-none focus-visible:ring-0 hover:border-border transition-colors group"
+                    >
+                        {/* Icons Background */}
+                        <div className="absolute inset-0 flex items-center justify-between px-2 text-muted-foreground">
+                            <Sun size={12} className="transition-all duration-300 opacity-100 text-yellow-500 dark:dark:text-yellow-600" />
+                            <Moon size={12} className="transition-all duration-300 text-slate-700 dark:opacity-100 dark:text-padot-blue-300" />
+                        </div>
+                        {/* Moving Thumb */}
+                        <div
+                            className="absolute left-1 w-5 h-5 bg-background rounded-full shadow-sm border border-border/20 z-10 flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] dark:translate-x-[28px]"
+                        >
+                        </div>
+                        <span className="sr-only">Toggle theme</span>
+                    </button>
 
                     {/* Mobile Menu Toggle */}
                     <button

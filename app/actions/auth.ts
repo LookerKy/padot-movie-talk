@@ -56,12 +56,7 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
             };
         }
 
-        let isValid = false;
-        if (user.password.startsWith("$2")) {
-            isValid = await bcrypt.compare(password, user.password);
-        } else {
-            isValid = user.password === password;
-        }
+        const isValid = await bcrypt.compare(password, user.password);
 
         if (!isValid) {
             return {
@@ -129,12 +124,7 @@ export async function changePasswordAction(prevState: any, formData: FormData) {
         if (!user) return { error: "사용자를 찾을 수 없습니다." };
 
         // Verify current password
-        let isValid = false;
-        if (user.password.startsWith("$2")) {
-            isValid = await bcrypt.compare(currentPassword, user.password);
-        } else {
-            isValid = user.password === currentPassword;
-        }
+        const isValid = await bcrypt.compare(currentPassword, user.password);
 
         if (!isValid) {
             return { error: { currentPassword: ["현재 비밀번호가 일치하지 않습니다."] } };

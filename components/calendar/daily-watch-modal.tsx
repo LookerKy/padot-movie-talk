@@ -30,7 +30,7 @@ export function DailyWatchModal({ isOpen, onClose, date, events, title }: DailyW
             <div className="pt-2 space-y-4">
                 {events.length === 0 ? (
                     <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-                        일정이 없습니다.
+                        시청기록이 없습니다.
                     </div>
                 ) : (
                     <div className="flex flex-col gap-2">

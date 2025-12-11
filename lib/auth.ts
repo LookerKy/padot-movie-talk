@@ -2,7 +2,10 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const SECRET_KEY = process.env.JWT_SECRET || "super-secret-key-change-this";
+const SECRET_KEY = process.env.JWT_SECRET;
+if (!SECRET_KEY) {
+    throw new Error("JWT_SECRET environment variable is required");
+}
 const key = new TextEncoder().encode(SECRET_KEY);
 
 export async function encrypt(payload: any, expiresIn: string = "1h") {
