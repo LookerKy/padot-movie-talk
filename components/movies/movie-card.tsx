@@ -17,7 +17,7 @@ export function MovieCard({ review, priority = false }: MovieCardProps) {
     const formattedDate = format(new Date(review.watchedAt), "yyyy-MM-dd");
 
     return (
-        <Link href={`/reviews/${review.id}`} className="block h-full">
+        <Link href={`/reviews/${review.id}`} className="block h-full" prefetch={false}>
             <GlassCard className="group relative overflow-hidden p-0 h-full flex flex-col hover:border-padot-blue-300 dark:hover:border-padot-blue-500/50">
                 {/* Poster Image Container */}
                 <div className="relative aspect-[2/3] w-full overflow-hidden">

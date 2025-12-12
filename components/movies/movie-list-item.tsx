@@ -16,7 +16,7 @@ export function MovieListItem({ review }: MovieListItemProps) {
     // const posterSrc = review.posterUrl || "/placeholder-poster.png";
 
     return (
-        <Link href={`/reviews/${review.id}`} className="block">
+        <Link href={`/reviews/${review.id}`} className="block" prefetch={false}>
             <GlassCard className="group relative flex items-center gap-6 p-4 overflow-hidden transition-transform duration-300 hover:scale-[1.01]" hoverEffect={false}>
 
                 {/* 1. Hover Background (Poster Blur) */}
