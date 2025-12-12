@@ -75,11 +75,16 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    // Match all request paths except for the ones starting with:
-    // - api (API routes)
-    // - _next/static (static files)
-    // - _next/image (image optimization files)
-    // - favicon.ico (favicon file)
-    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    // Optimized Matcher: Only run on Entry Points and Protected Routes to save Edge Requests (Invocations)
+    // Excludes: Static files, Images, Detail View Prefetches (/reviews/[id]), API routes
+    matcher: [
+        "/",                // Home (Session Refresh Point)
+        "/calendar",        // Main Tab
+        "/stats",           // Main Tab
+        "/login",
+        "/signup",
+        "/profile/:path*",  // Protected
+        "/reviews/new",     // Protected
+        "/reviews/:id/edit" // Protected
+    ],
 };
-
