@@ -80,7 +80,6 @@ export const config = {
     matcher: [
         "/",                // Home (Session Refresh Point)
         "/calendar",        // Main Tab
-        "/stats",           // Main Tab
         "/login",
         "/signup",
         "/profile/:path*",  // Protected
