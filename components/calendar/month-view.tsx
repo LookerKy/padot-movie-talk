@@ -1,39 +1,128 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval, setMonth, setYear, startOfDay, endOfDay, areIntervalsOverlapping } from "date-fns";
-import { ko } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Film, Eye, ChevronDown, Loader2, Plus } from "lucide-react";
-import { GlassCard } from "@/components/ui/glass-card";
+import { useState, useEffect } from "react";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, setMonth, setYear, startOfDay, endOfDay, areIntervalsOverlapping } from "date-fns";
+import { ChevronLeft, ChevronRight, ChevronDown, Loader2, Plus } from "lucide-react";
+import { badgeVariants } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { CalendarEventDisplay } from "@/app/actions/calendar";
 import { AddScheduleModal } from "./add-schedule-modal";
 import { EventDetailModal } from "./event-detail-modal";
 import { DailyWatchModal } from "./daily-watch-modal";
 import { useCalendarStore } from "@/store/use-calendar-store";
+import type { SessionUser } from "@/lib/auth";
 
 interface MonthViewProps {
-    user?: {
-        id: string;
-        email: string;
-        role: "USER" | "ADMIN";
-        name?: string;
-    };
+    user?: SessionUser;
+}
+
+const SCREENING_TAG_LIMIT = 3;
+const WATCHED_TAG_LIMIT = 2;
+
+const eventTagPalettes = [
+    {
+        chip: "border-sky-200/80 bg-sky-50/80 text-sky-950 shadow-sky-500/5 hover:bg-sky-100 dark:border-sky-300/20 dark:bg-sky-300/10 dark:text-sky-50 dark:hover:bg-sky-300/15",
+        accent: "bg-sky-400 dark:bg-sky-300",
+    },
+    {
+        chip: "border-emerald-200/80 bg-emerald-50/80 text-emerald-950 shadow-emerald-500/5 hover:bg-emerald-100 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-50 dark:hover:bg-emerald-300/15",
+        accent: "bg-emerald-400 dark:bg-emerald-300",
+    },
+    {
+        chip: "border-amber-200/80 bg-amber-50/80 text-amber-950 shadow-amber-500/5 hover:bg-amber-100 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-50 dark:hover:bg-amber-300/15",
+        accent: "bg-amber-400 dark:bg-amber-300",
+    },
+    {
+        chip: "border-violet-200/80 bg-violet-50/80 text-violet-950 shadow-violet-500/5 hover:bg-violet-100 dark:border-violet-300/20 dark:bg-violet-300/10 dark:text-violet-50 dark:hover:bg-violet-300/15",
+        accent: "bg-violet-400 dark:bg-violet-300",
+    },
+    {
+        chip: "border-cyan-200/80 bg-cyan-50/80 text-cyan-950 shadow-cyan-500/5 hover:bg-cyan-100 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:text-cyan-50 dark:hover:bg-cyan-300/15",
+        accent: "bg-cyan-400 dark:bg-cyan-300",
+    },
+    {
+        chip: "border-lime-200/80 bg-lime-50/80 text-lime-950 shadow-lime-500/5 hover:bg-lime-100 dark:border-lime-300/20 dark:bg-lime-300/10 dark:text-lime-50 dark:hover:bg-lime-300/15",
+        accent: "bg-lime-400 dark:bg-lime-300",
+    },
+    {
+        chip: "border-teal-200/80 bg-teal-50/80 text-teal-950 shadow-teal-500/5 hover:bg-teal-100 dark:border-teal-300/20 dark:bg-teal-300/10 dark:text-teal-50 dark:hover:bg-teal-300/15",
+        accent: "bg-teal-400 dark:bg-teal-300",
+    },
+    {
+        chip: "border-indigo-200/80 bg-indigo-50/80 text-indigo-950 shadow-indigo-500/5 hover:bg-indigo-100 dark:border-indigo-300/20 dark:bg-indigo-300/10 dark:text-indigo-50 dark:hover:bg-indigo-300/15",
+        accent: "bg-indigo-400 dark:bg-indigo-300",
+    },
+    {
+        chip: "border-orange-200/80 bg-orange-50/80 text-orange-950 shadow-orange-500/5 hover:bg-orange-100 dark:border-orange-300/20 dark:bg-orange-300/10 dark:text-orange-50 dark:hover:bg-orange-300/15",
+        accent: "bg-orange-300 dark:bg-orange-200",
+    },
+];
+
+const sectionStyles = {
+    screening: {
+        accent: "bg-sky-500 dark:bg-sky-300",
+        label: "text-sky-800 dark:text-sky-100",
+        count: "border-sky-200/70 bg-sky-50 text-sky-800 dark:border-sky-300/20 dark:bg-sky-300/10 dark:text-sky-100",
+    },
+    watched: {
+        accent: "bg-violet-400 dark:bg-violet-300",
+        label: "text-violet-800 dark:text-violet-100",
+        count: "border-violet-200/70 bg-violet-50 text-violet-800 dark:border-violet-300/20 dark:bg-violet-300/10 dark:text-violet-100",
+    },
+} as const;
+
+function getEventPalette(id: string) {
+    let hash = 0;
+
+    for (let i = 0; i < id.length; i++) {
+        hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    return eventTagPalettes[Math.abs(hash) % eventTagPalettes.length];
+}
+
+function sortCalendarEvents(a: CalendarEventDisplay, b: CalendarEventDisplay) {
+    const startA = new Date(a.startDate).getTime();
+    const startB = new Date(b.startDate).getTime();
+
+    if (startA !== startB) {
+        return startA - startB;
+    }
+
+    const durationA = new Date(a.endDate).getTime() - startA;
+    const durationB = new Date(b.endDate).getTime() - startB;
+
+    if (durationA !== durationB) {
+        return durationB - durationA;
+    }
+
+    return a.title.localeCompare(b.title, "ko");
 }
 
 export function MonthView({ user }: MonthViewProps) {
     // Zustand Store
     const currentDate = useCalendarStore((state) => state.currentDate);
-    const viewMode = useCalendarStore((state) => state.viewMode);
     const eventsCache = useCalendarStore((state) => state.eventsCache);
     const isLoading = useCalendarStore((state) => state.isLoading);
 
-    const { setCurrentDate, setViewMode, fetchEvents, invalidateCache } = useCalendarStore((state) => state.actions);
+    const { setCurrentDate, fetchEvents, invalidateCache } = useCalendarStore((state) => state.actions);
 
     // Get events for current month from cache
     // Key format must match store logic: "yyyy-MM"
     const currentMonthKey = format(currentDate, "yyyy-MM");
-    const events = eventsCache[currentMonthKey] || [];
+    const events = eventsCache[currentMonthKey] ?? [];
 
     // Local Modal States (UI only)
     const [isAddScheduleOpen, setIsAddScheduleOpen] = useState(false);
@@ -58,12 +147,12 @@ export function MonthView({ user }: MonthViewProps) {
     const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
 
     // --- Navigation Handlers ---
-    const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setCurrentDate(setYear(currentDate, parseInt(e.target.value)));
+    const handleYearSelect = (value: string) => {
+        setCurrentDate(setYear(currentDate, Number(value)));
     };
 
-    const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setCurrentDate(setMonth(currentDate, parseInt(e.target.value)));
+    const handleMonthSelect = (value: string) => {
+        setCurrentDate(setMonth(currentDate, Number(value)));
     };
 
     // --- Fetch Data ---
@@ -75,69 +164,20 @@ export function MonthView({ user }: MonthViewProps) {
     const years = Array.from({ length: 6 }, (_, i) => 2025 + i);
     const months = Array.from({ length: 12 }, (_, i) => i);
 
-    // --- Event Logic ---
-    // --- Event Logic ---
-    const { visibleEvents, sortedEvents, eventsWithRows } = useMemo(() => {
-        // 1. Filter events for this view
-        const _visibleEvents = events.filter(event =>
-            (new Date(event.startDate) <= endDate && new Date(event.endDate) >= startDate)
-        );
-
-        // 2. Sort events
-        const _sortedEvents = [..._visibleEvents].sort((a, b) => {
-            const startA = new Date(a.startDate).getTime();
-            const startB = new Date(b.startDate).getTime();
-            if (startA !== startB) {
-                return startA - startB;
-            }
-            const durationA = new Date(a.endDate).getTime() - startA;
-            const durationB = new Date(b.endDate).getTime() - startB;
-            return durationB - durationA;
-        });
-
-        // 3. Assign Rows (Packing) - Only for SCREENING mode
-        const _eventsWithRows: (CalendarEventDisplay & { rowIndex: number })[] = [];
-        const rowEndDates: number[] = [];
-
-        if (viewMode === "SCREENING") {
-            _sortedEvents.forEach(event => {
-                if (event.type === "WATCHED") return;
-
-                let rowIndex = 0;
-                const eventStart = startOfDay(new Date(event.startDate)).getTime();
-                const eventEnd = endOfDay(new Date(event.endDate)).getTime();
-
-                while (true) {
-                    const lastEndTime = rowEndDates[rowIndex] || 0;
-                    if (eventStart > lastEndTime) {
-                        rowEndDates[rowIndex] = eventEnd;
-                        _eventsWithRows.push({ ...event, rowIndex });
-                        break;
-                    }
-                    rowIndex++;
-                }
-            });
-        }
-
-        return {
-            visibleEvents: _visibleEvents,
-            sortedEvents: _sortedEvents,
-            eventsWithRows: _eventsWithRows
-        };
-    }, [events, startDate, endDate, viewMode]);
+    const visibleEvents = events
+        .filter(event => new Date(event.startDate) <= endDate && new Date(event.endDate) >= startDate)
+        .sort(sortCalendarEvents);
 
     const handleDateClick = (day: Date) => {
-        if (viewMode === "WATCHED") {
-            setDailyWatchDate(day);
-            setIsDailyWatchOpen(true);
+        if (user?.role === "ADMIN") {
+            setSelectedDate(day);
+            setEditModeData(undefined);
+            setIsAddScheduleOpen(true);
             return;
         }
 
-        if (user?.role === "ADMIN" && viewMode === "SCREENING") {
-            setSelectedDate(day);
-            setEditModeData(undefined); // Clear edit data just in case
-            setIsAddScheduleOpen(true);
-        }
+        setDailyWatchDate(day);
+        setIsDailyWatchOpen(true);
     };
 
     const handleEventClick = (e: React.MouseEvent, event: CalendarEventDisplay) => {
@@ -151,161 +191,155 @@ export function MonthView({ user }: MonthViewProps) {
         setIsAddScheduleOpen(true);
     };
 
-    // 4. Render Helper
-    const renderDayEvents = (day: Date) => {
-        // Mode: SCREENING
-        if (viewMode === "SCREENING") {
-            const dayEvents = eventsWithRows.filter(event => {
-                const eventInterval = { start: new Date(event.startDate), end: new Date(event.endDate) };
-                const dayInterval = { start: startOfDay(day), end: endOfDay(day) };
+    const getDayEvents = (day: Date) => {
+        const dayInterval = { start: startOfDay(day), end: endOfDay(day) };
+
+        return {
+            screeningEvents: visibleEvents.filter(event => {
+                if (event.type === "WATCHED") return false;
+
+                const eventInterval = {
+                    start: startOfDay(new Date(event.startDate)),
+                    end: endOfDay(new Date(event.endDate)),
+                };
 
                 return areIntervalsOverlapping(dayInterval, eventInterval);
-            });
+            }),
+            watchedEvents: visibleEvents.filter(event =>
+                event.type === "WATCHED" && isSameDay(day, new Date(event.startDate))
+            ),
+        };
+    };
 
-            const slots = [];
-            const MAX_SLOTS = 6; // Increased from 3 due to thinner bars. 140px height can fit header + 6 * 18px ~ 130px.
+    const openDaySummary = (e: React.MouseEvent, day: Date) => {
+        e.stopPropagation();
+        setDailyWatchDate(day);
+        setIsDailyWatchOpen(true);
+    };
 
-            // Check if we need overflow logic
-            // We use packing rowIndex. If any event has rowIndex >= MAX_SLOTS - 1, we must show "+N" in the last slot.
-            // Actually, simple count check for THIS DAY is easier for the "+N".
-            // But visually, we want to respect the rows.
-            // Strategy: Render 0..MAX-2 fully.
-            // Slot MAX-1: If there are events in row >= MAX-1, render "+N". Else render row MAX-1.
-            // Find max row index on this day
-            const maxRowIndexOnDay = Math.max(...dayEvents.map(e => e.rowIndex), -1);
-            const needsOverflow = maxRowIndexOnDay >= MAX_SLOTS;
-
-            // We iterate slots
-            for (let i = 0; i < MAX_SLOTS; i++) {
-                // Formatting for thinner bars
-                const barHeight = "h-[18px]";
-                const textSize = "text-[10px]";
-
-                // LAST SLOT LOGIC
-                if (i === MAX_SLOTS - 1) {
-                    // Check if there are events at this row or deeper
-                    const hiddenCount = dayEvents.filter(e => e.rowIndex >= i).length;
-                    if (hiddenCount > 0) {
-                        slots.push(
-                            <div
-                                key={`slot-${i}-overflow`}
-                                className={`${barHeight} mb-[1px] text-xs flex items-center px-1 text-muted-foreground hover:text-primary hover:bg-accent rounded cursor-pointer transition-colors`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDailyWatchDate(day);
-                                    setIsDailyWatchOpen(true);
-                                }}
-                            >
-                                <Plus size={10} className="mr-0.5" />
-                                <span>{hiddenCount}개 더보기</span>
-                            </div>
-                        );
-                        break; // Stop rendering
-                    }
-                }
-
-                const event = dayEvents.find(e => e.rowIndex === i);
-
-                if (event) {
-                    const eventStart = new Date(event.startDate);
-                    const eventEnd = new Date(event.endDate);
-                    const isStart = isSameDay(day, eventStart);
-                    const isEnd = isSameDay(day, eventEnd);
-                    const isSunday = day.getDay() === 0;
-                    const isSaturday = day.getDay() === 6;
-
-                    // Generate consistent color based on event ID
-                    let hash = 0;
-                    for (let j = 0; j < event.id.length; j++) {
-                        hash = event.id.charCodeAt(j) + ((hash << 5) - hash);
-                    }
-                    const colorIndex = Math.abs(hash) % 8;
-
-                    // Specific color for CINETY events (Admin added)
-                    const isCinety = event.type === "CINETY";
-
-                    const colors = [
-                        "bg-[#FFB3BA] text-gray-900 border border-red-200",
-                        "bg-[#BAFFC9] text-gray-900 border border-green-200",
-                        "bg-[#BAE1FF] text-gray-900 border border-blue-200",
-                        "bg-[#FFFFBA] text-gray-900 border border-yellow-200",
-                        "bg-[#FFDFBA] text-gray-900 border border-orange-200",
-                        "bg-[#E0BBE4] text-gray-900 border border-purple-200",
-                        "bg-[#957DAD] text-gray-900 border border-indigo-200",
-                        "bg-[#D291BC] text-gray-900 border border-pink-200",
-                        "bg-teal-100 text-gray-900 border border-teal-200",
-                        "bg-cyan-100 text-gray-900 border border-cyan-200",
-                        "bg-lime-100 text-gray-900 border border-lime-200",
-                        "bg-rose-100 text-gray-900 border border-rose-200",
-                    ];
-
-                    const baseColor = colors[colorIndex % colors.length];
-
-                    slots.push(
-                        <div
-                            key={`slot-${i}-${event.id}`}
-                            onClick={(e) => handleEventClick(e, event)}
-                            className={cn(
-                                `${barHeight} mb-[1px] ${textSize} flex items-center px-1 truncate relative font-medium transition-all hover:brightness-95 hover:scale-[1.01] cursor-pointer`,
-                                baseColor,
-                                "shadow-sm",
-                                // Rounding Logic - Smaller radius for thinner bars
-                                isStart && "rounded-l-sm ml-[1px]",
-                                isEnd && "rounded-r-sm mr-[1px]",
-
-                                // Continuity Logic
-                                !isStart && "rounded-l-none -ml-1 pl-2 border-l-0",
-                                !isEnd && "rounded-r-none -mr-1 pr-2 border-r-0",
-
-                                // Week Boundaries
-                                !isStart && isSunday && "rounded-l-sm ml-[1px]",
-                                !isEnd && isSaturday && "rounded-r-sm mr-[1px]",
-
-                                "z-10"
-                            )}
-                        >
-                            {isStart && (
-                                <span className={cn(
-                                    "drop-shadow-sm truncate w-full ",
-                                    isCinety ? "text-black" : "text-inherit font-bold"
-                                )}>{event.title}</span>
-                            )}
-                        </div>
-                    );
-                } else {
-                    // Empty slot placeholder
-                    slots.push(<div key={`slot-${i}-empty`} className={`${barHeight} mb-[1px]`} />);
-                }
-            }
-            return <div className="flex flex-col mt-1 relative">{slots}</div>;
+    const getEventDateLabel = (event: CalendarEventDisplay) => {
+        if (event.type === "WATCHED") {
+            return `${format(new Date(event.startDate), "M월 d일")} 닷네티의 날`;
         }
 
-        // Mode: WATCHED
-        if (viewMode === "WATCHED") {
-            const watchedEvents = visibleEvents.filter(event =>
-                event.type === "WATCHED" && isSameDay(day, new Date(event.startDate))
-            );
+        return `${format(new Date(event.startDate), "M월 d일")} - ${format(new Date(event.endDate), "M월 d일")}`;
+    };
 
-            // Limit to 2 items
-            const visibleWatched = watchedEvents.slice(0, 2);
-            const hasMore = watchedEvents.length > 2;
+    const renderEventTag = (event: CalendarEventDisplay, day: Date, variant: "screening" | "watched") => {
+        const isScreening = variant === "screening";
+        const palette = getEventPalette(`${variant}-${event.id}`);
 
-            return (
-                <div className="flex flex-col gap-0.5 mt-2">
-                    {visibleWatched.map(event => (
-                        <div key={event.id} className="px-1 py-0.5 text-left truncate flex items-center">
-                            <span className="text-[11px] font-medium text-padot-blue-600 dark:text-padot-blue-300 truncate hover:underline">
-                                <span className="mr-1 opacity-70">•</span>
-                                {event.title}
-                            </span>
-                        </div>
-                    ))}
-                    {hasMore && (
-                        <div className="px-1 text-[10px] text-muted-foreground">...</div>
+        return (
+            <Tooltip key={`${variant}-${event.id}`}>
+                <TooltipTrigger
+                    type="button"
+                    onClick={(e) => {
+                        if (isScreening) {
+                            handleEventClick(e, event);
+                            return;
+                        }
+
+                        openDaySummary(e, day);
+                    }}
+                    className={cn(
+                        badgeVariants({ variant: "outline" }),
+                        "h-5 max-w-full min-w-0 justify-start gap-1.5 rounded-md px-1.5 py-0 text-[10px] font-bold leading-none shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+                        "focus-visible:ring-2 focus-visible:ring-ring/40",
+                        palette.chip
+                    )}
+                >
+                    <span className={cn("size-1.5 shrink-0 rounded-full", palette.accent)} />
+                    <span className="min-w-0 truncate">{event.title}</span>
+                </TooltipTrigger>
+                <TooltipContent sideOffset={6}>
+                    <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold">{event.title}</span>
+                        <span className="text-[11px] opacity-80">{getEventDateLabel(event)}</span>
+                    </div>
+                </TooltipContent>
+            </Tooltip>
+        );
+    };
+
+    const renderEventSection = (
+        day: Date,
+        label: string,
+        events: CalendarEventDisplay[],
+        limit: number,
+        variant: "screening" | "watched"
+    ) => {
+        if (events.length === 0) return null;
+
+        const visibleDayEvents = events.slice(0, limit);
+        const hiddenCount = events.length - visibleDayEvents.length;
+        const sectionStyle = sectionStyles[variant];
+
+        return (
+            <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-1">
+                    <span className={cn("inline-flex min-w-0 items-center gap-1.5 text-[10px] font-black tracking-wide", sectionStyle.label)}>
+                        <span className={cn("h-3 w-0.5 shrink-0 rounded-full", sectionStyle.accent)} />
+                        <span className="truncate">{label}</span>
+                    </span>
+                    <span
+                        className={cn(
+                            badgeVariants({ variant: "outline" }),
+                            "h-4 shrink-0 rounded px-1.5 py-0 text-[9px] font-bold leading-none",
+                            sectionStyle.count
+                        )}
+                    >
+                        {events.length}
+                    </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                    {visibleDayEvents.map(event => renderEventTag(event, day, variant))}
+                    {hiddenCount > 0 && (
+                        <Tooltip>
+                            <TooltipTrigger
+                                type="button"
+                                onClick={(e) => openDaySummary(e, day)}
+                                className={cn(
+                                    badgeVariants({ variant: "outline" }),
+                                    "h-5 rounded-md border-dashed bg-background/60 px-1.5 py-0 text-[10px] font-bold leading-none text-muted-foreground hover:border-primary/50 hover:text-primary dark:bg-white/5"
+                                )}
+                            >
+                                +{hiddenCount}
+                            </TooltipTrigger>
+                            <TooltipContent sideOffset={6}>
+                                {label} {hiddenCount}개 더 보기
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
-            );
+            </div>
+        );
+    };
+
+    const renderDayEvents = (day: Date) => {
+        const { screeningEvents, watchedEvents } = getDayEvents(day);
+
+        if (screeningEvents.length === 0 && watchedEvents.length === 0) {
+            return null;
         }
+
+        return (
+            <div className="mt-2 flex flex-col gap-2">
+                {renderEventSection(
+                    day,
+                    "상영일정",
+                    screeningEvents,
+                    SCREENING_TAG_LIMIT,
+                    "screening"
+                )}
+                {renderEventSection(
+                    day,
+                    "닷네티의 날",
+                    watchedEvents,
+                    WATCHED_TAG_LIMIT,
+                    "watched"
+                )}
+            </div>
+        );
     };
 
     // Handlers for Cache Invalidation
@@ -321,7 +355,7 @@ export function MonthView({ user }: MonthViewProps) {
         fetchEvents(currentDate.getFullYear(), currentDate.getMonth());
     };
 
-    const handleEventDeleted = (id: string) => {
+    const handleEventDeleted = () => {
         setIsEventDetailOpen(false);
         invalidateCache();
         fetchEvents(currentDate.getFullYear(), currentDate.getMonth());
@@ -338,44 +372,104 @@ export function MonthView({ user }: MonthViewProps) {
 
                 {/* Date Navigation */}
                 {/* Date Navigation */}
-                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-md border border-border p-1.5 rounded-xl shadow-sm relative">
-                    <button onClick={prevMonth} className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground">
-                        <ChevronLeft size={18} />
-                    </button>
+                <div className="relative flex items-center gap-1 rounded-2xl border border-border bg-background p-1 shadow-sm">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={prevMonth}
+                        aria-label="이전 달"
+                        className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
+                    >
+                        <ChevronLeft size={17} />
+                    </Button>
 
-                    <div className="flex items-center gap-2 px-2">
-                        {/* Year Select */}
-                        <div className="relative group">
-                            <select
-                                value={currentDate.getFullYear()}
-                                onChange={handleYearChange}
-                                className="appearance-none bg-transparent font-bold text-lg text-foreground pr-6 cursor-pointer focus:outline-none"
+                    <div className="flex items-center gap-1">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-9 min-w-[94px] rounded-xl border-border bg-background px-3 text-base font-black text-foreground shadow-none hover:bg-accent"
+                                >
+                                    {currentDate.getFullYear()}년
+                                    <ChevronDown size={14} className="ml-1.5 text-muted-foreground" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="center"
+                                className="calendar-select-menu min-w-[132px] rounded-xl"
                             >
-                                {years.map(year => (
-                                    <option key={year} value={year} className="bg-popover text-popover-foreground">{year}년</option>
-                                ))}
-                            </select>
-                            <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                        </div>
+                                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                                    년도 선택
+                                </DropdownMenuLabel>
+                                <DropdownMenuRadioGroup
+                                    value={String(currentDate.getFullYear())}
+                                    onValueChange={handleYearSelect}
+                                >
+                                    <DropdownMenuGroup>
+                                        {years.map(year => (
+                                            <DropdownMenuRadioItem
+                                                key={year}
+                                                value={String(year)}
+                                                className="cursor-pointer rounded-lg font-medium"
+                                            >
+                                                {year}년
+                                            </DropdownMenuRadioItem>
+                                        ))}
+                                    </DropdownMenuGroup>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
-                        {/* Month Select */}
-                        <div className="relative group">
-                            <select
-                                value={currentDate.getMonth()}
-                                onChange={handleMonthChange}
-                                className="appearance-none bg-transparent font-bold text-lg text-foreground pr-6 cursor-pointer focus:outline-none"
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-9 min-w-[72px] rounded-xl border-border bg-background px-3 text-base font-black text-foreground shadow-none hover:bg-accent"
+                                >
+                                    {currentDate.getMonth() + 1}월
+                                    <ChevronDown size={14} className="ml-1.5 text-muted-foreground" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="center"
+                                className="calendar-select-menu min-w-[116px] rounded-xl"
                             >
-                                {months.map(month => (
-                                    <option key={month} value={month} className="bg-popover text-popover-foreground">{month + 1}월</option>
-                                ))}
-                            </select>
-                            <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                        </div>
+                                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                                    월 선택
+                                </DropdownMenuLabel>
+                                <DropdownMenuRadioGroup
+                                    value={String(currentDate.getMonth())}
+                                    onValueChange={handleMonthSelect}
+                                >
+                                    <DropdownMenuGroup>
+                                        {months.map(month => (
+                                            <DropdownMenuRadioItem
+                                                key={month}
+                                                value={String(month)}
+                                                className="cursor-pointer rounded-lg font-medium"
+                                            >
+                                                {month + 1}월
+                                            </DropdownMenuRadioItem>
+                                        ))}
+                                    </DropdownMenuGroup>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
-                    <button onClick={nextMonth} className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-foreground">
-                        <ChevronRight size={18} />
-                    </button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={nextMonth}
+                        aria-label="다음 달"
+                        className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
+                    >
+                        <ChevronRight size={17} />
+                    </Button>
 
                     {isLoading && (
                         <div className="absolute -right-8 top-1/2 -translate-y-1/2">
@@ -402,76 +496,58 @@ export function MonthView({ user }: MonthViewProps) {
                         </div>
                     )}
 
-                    {/* View Mode Toggle */}
-                    <div className="flex p-1 bg-muted rounded-lg border border-border">
-                        <button
-                            onClick={() => setViewMode("SCREENING")}
-                            className={cn(
-                                "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
-                                viewMode === "SCREENING"
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            <Film size={14} />
-                            상영 일정
-                        </button>
-                        <button
-                            onClick={() => setViewMode("WATCHED")}
-                            className={cn(
-                                "flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
-                                viewMode === "WATCHED"
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            <Eye size={14} />
-                            시청 기록
-                        </button>
+                    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2 text-xs font-semibold text-muted-foreground">
+                        <span className={cn("inline-flex items-center gap-1.5", sectionStyles.screening.label)}>
+                            <span className={cn("h-3 w-0.5 rounded-full", sectionStyles.screening.accent)} />
+                            상영일정
+                        </span>
+                        <span className="h-3 w-px bg-border" />
+                        <span className={cn("inline-flex items-center gap-1.5", sectionStyles.watched.label)}>
+                            <span className={cn("h-3 w-0.5 rounded-full", sectionStyles.watched.accent)} />
+                            닷네티의 날
+                        </span>
                     </div>
                 </div>
             </div>
 
             {/* Calendar Grid */}
-            <GlassCard className="p-0 overflow-hidden" hoverEffect={false}>
-                <div className="grid grid-cols-7 text-center border-b border-border bg-muted/30">
-                    {["일", "월", "화", "수", "목", "금", "토"].map(day => (
-                        <div key={day} className="py-3 font-semibold text-muted-foreground text-sm">
-                            {day}
-                        </div>
-                    ))}
-                </div>
-                <div className="grid grid-cols-7 auto-rows-[minmax(140px,auto)]">
-                    {calendarDays.map((day, idx) => (
-                        <div
-                            key={day.toISOString()}
-                            onClick={() => handleDateClick(day)}
-                            className={cn(
-                                "border-b border-r border-border/50 p-1 transition-colors relative group",
-                                // Only hover effect if Admin
-                                user?.role === "ADMIN" && "hover:bg-accent/50 cursor-pointer",
-                                !isSameMonth(day, monthStart) && "bg-muted/10 text-muted-foreground/50"
-                            )}
-                        >
-                            <div className="flex justify-between items-start px-1">
-                                <span className={cn(
-                                    "text-sm font-medium inline-flex w-7 h-7 items-center justify-center rounded-full z-20 relative",
-                                    isSameDay(day, new Date())
-                                        ? "bg-primary text-primary-foreground"
-                                        : "text-foreground"
-                                )}>
-                                    {format(day, "d")}
-                                </span>
+            <Card className="glass gap-0 overflow-hidden p-0 py-0 shadow-sm" data-size="sm">
+                <CardContent className="p-0">
+                    <div className="grid grid-cols-7 border-b border-border bg-muted/30 text-center">
+                        {["일", "월", "화", "수", "목", "금", "토"].map(day => (
+                            <div key={day} className="py-3 text-sm font-semibold text-muted-foreground">
+                                {day}
                             </div>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-7 auto-rows-[minmax(158px,auto)]">
+                        {calendarDays.map((day) => (
+                            <div
+                                key={day.toISOString()}
+                                onClick={() => handleDateClick(day)}
+                                className={cn(
+                                    "relative border-b border-r border-border/50 p-2 transition-colors",
+                                    user?.role === "ADMIN" && "cursor-pointer hover:bg-accent/50",
+                                    !isSameMonth(day, monthStart) && "bg-muted/10 text-muted-foreground/50"
+                                )}
+                            >
+                                <div className="flex items-start justify-between">
+                                    <span className={cn(
+                                        "relative inline-flex size-7 items-center justify-center rounded-full text-sm font-medium",
+                                        isSameDay(day, new Date())
+                                            ? "bg-primary text-primary-foreground"
+                                            : "text-foreground"
+                                    )}>
+                                        {format(day, "d")}
+                                    </span>
+                                </div>
 
-                            {/* Event Container */}
-                            <div className="mt-1">
                                 {renderDayEvents(day)}
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </GlassCard>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
 
             <AddScheduleModal
                 key={selectedDate?.toISOString() + (editModeData?.id || "") + isAddScheduleOpen}
@@ -488,25 +564,16 @@ export function MonthView({ user }: MonthViewProps) {
                 date={dailyWatchDate || new Date()}
                 title={
                     dailyWatchDate
-                        ? format(dailyWatchDate, `M월 d일 ${viewMode === "SCREENING" ? "상영 일정" : "시청 기록"}`)
+                        ? format(dailyWatchDate, "M월 d일 일정")
                         : undefined
                 }
+                emptyMessage="등록된 일정이 없습니다."
                 events={
                     dailyWatchDate
-                        ? (eventsCache[format(currentDate, "yyyy-MM")] || []).filter(
-                            e => {
-                                // Filter logic:
-                                // If WATCHED: match type WATCHED & date
-                                // If SCREENING: match SCREENING/CINETY & interval overlap
-                                if (viewMode === "WATCHED") {
-                                    return e.type === "WATCHED" && isSameDay(dailyWatchDate, new Date(e.startDate));
-                                } else {
-                                    const eventInterval = { start: new Date(e.startDate), end: new Date(e.endDate) };
-                                    const dayInterval = { start: startOfDay(dailyWatchDate), end: endOfDay(dailyWatchDate) };
-                                    return e.type !== "WATCHED" && areIntervalsOverlapping(dayInterval, eventInterval);
-                                }
-                            }
-                        )
+                        ? [
+                            ...getDayEvents(dailyWatchDate).screeningEvents,
+                            ...getDayEvents(dailyWatchDate).watchedEvents,
+                        ]
                         : []
                 }
             />

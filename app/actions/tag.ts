@@ -49,7 +49,7 @@ export async function deleteTagAction(tagId: string) {
         revalidatePath("/"); // Home might show tags?
 
         return { success: true };
-    } catch (error) {
+    } catch {
         return { success: false, error: "태그 삭제 중 오류가 발생했습니다." };
     }
 }

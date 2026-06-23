@@ -1,7 +1,10 @@
 "use server";
 
 import prisma from "@/lib/db/client";
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
+import { endOfMonth, startOfWeek, endOfWeek } from "date-fns";
+import { revalidatePath } from "next/cache";
+import { calendarEventSchema } from "@/lib/validations/calendar";
+import { requireAdmin, AuthError } from "@/lib/auth-helpers";
 
 export type CalendarEventType = "SCREENING" | "WATCHED" | "CINETY";
 
@@ -74,17 +77,11 @@ export async function getCalendarEvents(year: number, month: number) {
 
     } catch (error) {
         console.error("Failed to fetch calendar events:", error);
-        return { success: false, error: "Failed to load events" };
+        return { success: false, error: "일정을 불러오지 못했습니다." };
     }
 }
 
-import { calendarEventSchema } from "@/lib/validations/calendar";
-
-import { requireAdmin, AuthError } from "@/lib/auth-helpers";
-import { z } from "zod";
-import { revalidatePath } from "next/cache";
-
-export async function createCalendarEvent(prevState: any, formData: FormData) {
+export async function createCalendarEvent(_prevState: unknown, formData: FormData) {
     try {
         await requireAdmin();
     } catch (error) {

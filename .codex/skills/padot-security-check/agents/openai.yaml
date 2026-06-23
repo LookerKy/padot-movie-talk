@@ -1,0 +1,6 @@
+interface:
+  display_name: "Padot Security Check"
+  short_description: "Padot Next.js 보안 취약점 점검 워크플로"
+  default_prompt: "Use $padot-security-check를 사용해 보안 취약점을 점검해줘."
+policy:
+  allow_implicit_invocation: true

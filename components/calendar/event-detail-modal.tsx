@@ -6,8 +6,7 @@ import { ko } from "date-fns/locale";
 import { Modal } from "@/components/ui/modal";
 import { deleteCalendarEvent } from "@/app/actions/calendar";
 import { CalendarEventDisplay } from "@/app/actions/calendar";
-import { Loader2, Trash2, Edit2, Calendar, Clock, Film } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Loader2, Trash2, Edit2, Clock, Film } from "lucide-react";
 
 interface EventDetailModalProps {
     isOpen: boolean;
@@ -19,7 +18,6 @@ interface EventDetailModalProps {
 }
 
 export function EventDetailModal({ isOpen, onClose, event, isAdmin, onEdit, onDeleteSuccess }: EventDetailModalProps) {
-    const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
 
@@ -49,10 +47,6 @@ export function EventDetailModal({ isOpen, onClose, event, isAdmin, onEdit, onDe
 
     const startDate = new Date(event.startDate);
     const endDate = new Date(event.endDate);
-
-    // Formatting helper
-    const formatDate = (date: Date) => format(date, "PPP (EEE)", { locale: ko });
-    const formatTime = (date: Date) => format(date, "a h:mm", { locale: ko });
 
     return (
         <Modal

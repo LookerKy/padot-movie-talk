@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getGlobalReviewStatsAction } from "@/app/actions/stats";
 import { Loader2 } from "lucide-react";
-import { FaChartLine, FaStar, FaTrophy, FaHashtag } from "react-icons/fa";
+import { FaChartLine, FaStar, FaHashtag } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -28,7 +28,7 @@ export function StatsView() {
                 } else {
                     setError(res.error || "Failed to load stats");
                 }
-            } catch (err) {
+            } catch {
                 setError("An unexpected error occurred");
             } finally {
                 setIsLoading(false);
@@ -157,4 +157,3 @@ export function StatsView() {
         </div>
     );
 }
-

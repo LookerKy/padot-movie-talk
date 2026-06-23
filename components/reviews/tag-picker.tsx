@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Check, Hash, Plus, X, Trash2, Loader2 } from "lucide-react";
+import { Check, Plus, X, Trash2, Loader2 } from "lucide-react";
 import { cn, TAG_COLORS } from "@/lib/utils";
 import { deleteTagAction, createTagAction } from "@/app/actions/tag";
 import { useRouter } from "next/navigation";
@@ -204,7 +204,7 @@ export function TagPicker({ selectedTags, onTagsChange, availableTags, onTagDele
                                 className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors disabled:opacity-50"
                             >
                                 {isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-                                <span>"{search}" 생성</span>
+                                <span>&ldquo;{search}&rdquo; 생성</span>
                             </button>
                         )}
 

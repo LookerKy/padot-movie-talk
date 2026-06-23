@@ -1,9 +1,6 @@
 import { StatsView } from "@/components/stats/stats-view";
-import { getSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
 
 export default async function StatsPage() {
-    const session = await getSession();
     // Public Access allowed
 
     return (

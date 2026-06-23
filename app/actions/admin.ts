@@ -13,7 +13,7 @@ const createUserSchema = z.object({
     role: z.enum(["USER", "ADMIN"]).default("USER"),
 });
 
-export async function createUserAction(prevState: any, formData: FormData) {
+export async function createUserAction(_prevState: unknown, formData: FormData) {
     const session = await getSession();
     if (!session || session.user.role !== "ADMIN") {
         return { error: "권한이 없습니다." };

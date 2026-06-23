@@ -1,7 +1,6 @@
 "use server";
 
 import prisma from "@/lib/db/client";
-import { requireAuth, AuthError } from "@/lib/auth-helpers";
 
 export async function getGlobalReviewStatsAction() {
     try {

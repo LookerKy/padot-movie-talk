@@ -4,18 +4,8 @@
 import { reviewSchema, ReviewFormValues } from "@/lib/validations/review";
 import prisma from "@/lib/db/client";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { TAG_COLORS } from "@/lib/utils";
-import { getSession } from "@/lib/auth";
 import { requireAuth, AuthError } from "@/lib/auth-helpers";
-
-// Helper to get random color
-function getRandomTagColor() {
-    const index = Math.floor(Math.random() * TAG_COLORS.length);
-    return TAG_COLORS[index];
-}
-
-
+import { Prisma } from "@prisma/client";
 
 // Check if a review already exists for a given TMDB ID
 export async function checkReviewExists(tmdbId: number) {
@@ -170,7 +160,7 @@ export async function getReviewsAction({ page = 1, limit = 12, minRating = null,
     try {
         const skip = (page - 1) * limit;
 
-        const where: any = {};
+        const where: Prisma.ReviewWhereInput = {};
 
         if (minRating) {
             where.rating = {

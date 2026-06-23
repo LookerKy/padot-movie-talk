@@ -17,6 +17,7 @@ export const PreserveMarks = Extension.create({
     addKeyboardShortcuts() {
         return {
             Enter: ({ editor }) => {
+                const getUserSetFontSize = () => editor.getAttributes('textStyle').fontSize || '18px';
                 const { $from } = editor.state.selection;
 
                 // 현재 블록 타입 확인
@@ -43,7 +44,7 @@ export const PreserveMarks = Extension.create({
 
                     // 헤더에서 탈출 → 사용자 설정 폰트 적용
                     if (isInHeading && !stillInHeading) {
-                        const userSetFontSize = (editor.storage as any).userSetFontSize || '18px';
+                        const userSetFontSize = getUserSetFontSize();
                         editor.chain().focus().setFontSize(userSetFontSize).run();
                         return;
                     }
@@ -61,7 +62,7 @@ export const PreserveMarks = Extension.create({
                         }
                         // 2. 마크가 없어도 사용자 설정 폰트는 강제 적용 (안전 장치)
                         else {
-                            const userSetFontSize = (editor.storage as any).userSetFontSize || '18px';
+                            const userSetFontSize = getUserSetFontSize();
                             editor.chain().focus().setFontSize(userSetFontSize).run();
                         }
                     }
@@ -70,6 +71,7 @@ export const PreserveMarks = Extension.create({
                 return false; // 기본 동작 허용
             },
             Backspace: ({ editor }) => {
+                const getUserSetFontSize = () => editor.getAttributes('textStyle').fontSize || '18px';
                 const { selection } = editor.state;
                 const { empty, $from } = selection;
 
@@ -80,7 +82,7 @@ export const PreserveMarks = Extension.create({
 
                 if (isInList && empty && isAtStart) {
                     // 사용자 설정 폰트 가져오기
-                    const userSetFontSize = (editor.storage as any).userSetFontSize || '18px';
+                    const userSetFontSize = getUserSetFontSize();
 
                     // 리스트 해제 (Lift logic handled by standard delete, but we want to intercept to styling)
                     // Tiptap의 기본 Backspace는 liftListItem을 수행함.

@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 import { logoutAction } from "@/app/actions/auth";
+import type { SessionUser } from "@/lib/auth";
 import { LogOut, PenLine, KeyRound, User as UserIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,18 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
-    user?: {
-        id: string;
-        email: string;
-        role: "USER" | "ADMIN";
-        name?: string;
-        username?: string;
-    };
+    user?: SessionUser;
 }
 
 export function Header({ user }: HeaderProps) {
     const [isScrolled, setIsScrolled] = useState(false);
-    const router = useRouter();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -42,6 +35,9 @@ export function Header({ user }: HeaderProps) {
     const handleLogout = async () => {
         await logoutAction();
     };
+
+    const userLabel = user ? user.name || user.username || user.email || "User" : "User";
+    const userDisplayName = user ? user.name || user.username || user.email?.split("@")[0] || "User" : "User";
 
     return (
         <header
@@ -114,18 +110,18 @@ export function Header({ user }: HeaderProps) {
                                         <div className="flex items-center gap-2 hover:bg-accent px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-border">
                                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-padot-blue-500 to-purple-500 flex items-center justify-center">
                                                 <span className="text-xs font-bold text-white">
-                                                    {(user.name || user.username || user.email).slice(0, 1).toUpperCase()}
+                                                    {userLabel.slice(0, 1).toUpperCase()}
                                                 </span>
                                             </div>
                                             <span className="text-muted-foreground font-medium hidden md:block">
-                                                {user.name || user.username || user.email.split("@")[0]}
+                                                {userDisplayName}
                                             </span>
                                         </div>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-56 bg-popover border-border text-popover-foreground p-2">
                                         <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">내 계정</DropdownMenuLabel>
                                         <div className="px-2 py-2 mb-2">
-                                            <p className="font-bold text-lg">{user.name || user.username || "User"}</p>
+                                            <p className="font-bold text-lg">{userLabel}</p>
                                             <p className="text-xs text-muted-foreground">{user.email}</p>
                                         </div>
                                         <DropdownMenuSeparator className="bg-border" />

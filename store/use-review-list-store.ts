@@ -24,7 +24,7 @@ interface ReviewListState {
     isLoading: boolean;
 
     // Actions
-    setFilter: (key: keyof FilterState, value: any) => void;
+    setFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
     loadMore: () => Promise<void>;
     reset: () => void;
     initialize: (initialReviews: Review[], totalCount: number) => void;
@@ -85,7 +85,6 @@ export const useReviewListStore = create<ReviewListState>((set, get) => ({
         }
 
         // Server Mode (Fallback)
-        get().isLoading = true;
         set({ reviews: [], page: 1, hasMore: true, isLoading: true });
 
         getReviewsAction({
@@ -260,4 +259,3 @@ export const useReviewListStore = create<ReviewListState>((set, get) => ({
         }
     }
 }));
-

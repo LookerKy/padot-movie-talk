@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ReviewFormValues } from '@/lib/validations/review';
+import { ReviewFormInputValues } from '@/lib/validations/review';
 
-type ReviewDraft = Partial<ReviewFormValues>;
+type ReviewDraft = Partial<ReviewFormInputValues>;
 
 interface ReviewStore {
     drafts: Record<number, ReviewDraft>;

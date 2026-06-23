@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { Calendar, Quote, Star, Pencil } from "lucide-react";
+import { Calendar, Star, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TAG_COLORS } from "@/lib/utils";
 import prisma from "@/lib/db/client";
@@ -51,10 +51,6 @@ export default async function ReviewDetailPage({ params }: PageProps) {
     // Format dates and handle optional fields
     const formattedDate = format(new Date(review.watchedAt), "yyyy-MM-dd");
     // const posterSrc = review.posterUrl || "/placeholder-poster.png";
-
-    // Author info from DB
-    const authorName = review.author?.name || review.author?.username || "Unknown Author";
-    const authorInitial = authorName.charAt(0).toUpperCase();
 
     // Check if current user is author (for future edit buttons)
     const isOwner = session?.user?.id === review.authorId;
@@ -168,7 +164,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                                     페닷의 한마디
                                 </p>
                                 <p className="relative text-2xl md:text-2xl font-medium italic text-foreground dark:text-white/90 leading-relaxed tracking-wide">
-                                    "{review.oneLiner}"
+                                    &ldquo;{review.oneLiner}&rdquo;
                                 </p>
                             </div>
                         </div>

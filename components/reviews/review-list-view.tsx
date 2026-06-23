@@ -5,10 +5,10 @@ import { MovieCard } from "@/components/movies/movie-card";
 import { MovieListItem } from "@/components/movies/movie-list-item";
 import { useReviewListStore } from "@/store/use-review-list-store";
 import dynamic from "next/dynamic";
-import { List, PlusCircle, Trophy, Star, Clock, Loader2 } from "lucide-react";
+import { Trophy, Star, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Review } from "@/lib/types";
-import Link from "next/link";
+import { Review, Tag } from "@/lib/types";
+import type { SessionUser } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 
 const FilterToolbar = dynamic(
@@ -32,15 +32,10 @@ interface ReviewListViewProps {
     initialReviews: Review[];
     // Hybrid Filtering: Need totalCount to decide mode
     initialTotalCount?: number;
-    user?: {
-        id: string;
-        email: string;
-        role: "USER" | "ADMIN";
-        name?: string;
-    };
+    user?: SessionUser;
 }
 
-export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: ReviewListViewProps) {
+export function ReviewListView({ initialReviews, initialTotalCount = 0 }: ReviewListViewProps) {
     const {
         reviews,
         filters,
@@ -52,7 +47,7 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
         initialize
     } = useReviewListStore();
 
-    const [availableTags, setAvailableTags] = useState<any[]>([]);
+    const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
     // Collapsible state for rating groups in List View
     // Default all expanded. keys: "5", "4", etc.
@@ -99,7 +94,6 @@ export function ReviewListView({ initialReviews, initialTotalCount = 0, user }: 
     const reviewsByRating = useMemo(() => {
         const groups: Record<number, Review[]> = {};
         reviews.forEach(review => {
-            const r = Math.floor(review.rating); // Group by floor rating? or exact? Usually ranges like 4.0-4.9 -> 4
             // Let's assume we group by integer part of rating for simplicity and broader groups
             const key = Math.floor(review.rating);
             if (!groups[key]) groups[key] = [];

@@ -43,7 +43,7 @@ export function MovieCard({ review, priority = false }: MovieCardProps) {
                     {/* Hover One-liner Overlay (Glass Effect) */}
                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm p-6 z-10">
                         <p className="text-white text-center font-medium leading-relaxed break-keep drop-shadow-md">
-                            "{review.oneLiner}"
+                            &ldquo;{review.oneLiner}&rdquo;
                         </p>
                     </div>
 
@@ -76,7 +76,7 @@ export function MovieCard({ review, priority = false }: MovieCardProps) {
                         </h3>
                         {/* Tags */}
                         <div className="flex flex-wrap gap-1.5">
-                            {review.tags.slice(0, 3).map((tag: any) => (
+                            {review.tags.slice(0, 3).map((tag) => (
                                 <Badge
                                     key={tag.id}
                                     variant="secondary"

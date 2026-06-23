@@ -3,26 +3,24 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import {
     Crown,
     Calendar,
     BarChart2,
     PenLine,
     LogOut,
-    Settings,
     User as UserIcon,
     UserPlus,
     Menu,
     X,
     Sun,
     Moon,
-    Laptop
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useReviewStore } from "@/store/use-review-store";
 import React, { useState, useEffect } from "react";
 import { logoutAction } from "@/app/actions/auth";
+import type { SessionUser } from "@/lib/auth";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -30,20 +28,11 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuSubTrigger,
-    DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 
 interface FloatingNavProps {
-    user?: {
-        id: string;
-        email: string;
-        role: "USER" | "ADMIN";
-        name?: string;
-        username?: string;
-    } | null;
+    user?: SessionUser | null;
 }
 
 // Re-exporting component to fix build cache

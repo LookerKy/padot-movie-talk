@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { searchMovies } from "@/app/actions/tmdb";
 import { checkReviewExists } from "@/app/actions/review";
 import { TMDBMovieSearchResult } from "@/lib/tmdb";

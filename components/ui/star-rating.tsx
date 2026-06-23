@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 
 interface StarRatingProps {
     rating: number; // 0.0 to 5.0
@@ -24,9 +24,6 @@ export function StarRating({
 
     const displayRating = hoverRating !== null ? hoverRating : rating;
 
-    // Calculate percentage for the filled overlay
-    const percentage = Math.min(100, Math.max(0, (displayRating / maxRating) * 100));
-
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (readonly || !containerRef.current) return;
 
@@ -35,7 +32,7 @@ export function StarRating({
         const width = rect.width;
 
         // Calculate raw rating based on mouse position
-        let rawRating = (x / width) * maxRating;
+        const rawRating = (x / width) * maxRating;
 
         // Snap to nearest 0.5
         const snappedRating = Math.ceil(rawRating * 2) / 2;

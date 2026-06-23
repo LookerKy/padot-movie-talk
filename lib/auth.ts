@@ -1,6 +1,5 @@
-import { SignJWT, jwtVerify } from "jose";
+import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
 
 const SECRET_KEY = process.env.JWT_SECRET;
 if (!SECRET_KEY) {
@@ -8,7 +7,19 @@ if (!SECRET_KEY) {
 }
 const key = new TextEncoder().encode(SECRET_KEY);
 
-export async function encrypt(payload: any, expiresIn: string = "1h") {
+export interface SessionUser {
+    id: string;
+    username: string;
+    role: "USER" | "ADMIN";
+    name: string | null;
+    email?: string | null;
+}
+
+export interface SessionPayload extends JWTPayload {
+    user: SessionUser;
+}
+
+export async function encrypt(payload: JWTPayload, expiresIn: string = "1h") {
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
@@ -16,18 +27,18 @@ export async function encrypt(payload: any, expiresIn: string = "1h") {
         .sign(key);
 }
 
-export async function decrypt(input: string): Promise<any> {
+export async function decrypt(input: string): Promise<SessionPayload | null> {
     try {
         const { payload } = await jwtVerify(input, key, {
             algorithms: ["HS256"],
         });
-        return payload;
-    } catch (error) {
+        return payload as SessionPayload;
+    } catch {
         return null;
     }
 }
 
-export async function login(userData: { id: string; username: string; role: string; name: string | null; email?: string | null }) {
+export async function login(userData: SessionUser) {
     // 1. Access Token (1 hour)
     // We only put minimal info in Access Token to keep it small
     const accessToken = await encrypt({ user: userData }, "1h");

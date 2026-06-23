@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { reviewSchema, ReviewFormValues } from "@/lib/validations/review";
+import { reviewSchema, type ReviewFormInputValues, type ReviewFormValues } from "@/lib/validations/review";
 import { submitReview, updateReview } from "@/app/actions/review";
 import { getMovieDetails } from "@/app/actions/tmdb";
 import { getTagsAction } from "@/app/actions/tag";
@@ -29,6 +29,8 @@ interface ReviewFormProps {
 }
 
 const DEFAULT_TAGS: { id: string; name: string; color?: string | null }[] = [];
+const toDateInputValue = (value: Date | string) =>
+    new Date(value).toISOString().split("T")[0];
 
 export function ReviewForm({ movie, initialData, onCancel, backLink, availableTags: initialAvailableTags = DEFAULT_TAGS, isManualMode = false }: ReviewFormProps) {
     const router = useRouter();
@@ -63,11 +65,11 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
         }
     };
 
-    const form = useForm<ReviewFormValues>({
-        resolver: zodResolver(reviewSchema) as any,
+    const form = useForm<ReviewFormInputValues, unknown, ReviewFormValues>({
+        resolver: zodResolver(reviewSchema),
         defaultValues: initialData ? {
             ...initialData,
-            watchedAt: new Date(initialData.watchedAt).toISOString().split("T")[0] as any,
+            watchedAt: toDateInputValue(initialData.watchedAt),
         } : {
             title: movie?.title || "",
             tmdbId: movie?.id || 0,
@@ -76,7 +78,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
             rating: 0,
             oneLiner: "",
             content: "",
-            watchedAt: new Date().toISOString().split("T")[0] as any,
+            watchedAt: toDateInputValue(new Date()),
             isMustWatch: false,
             tags: [],
         },
@@ -96,7 +98,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                 if (watchedAt) {
                     const dateObj = new Date(watchedAt);
                     if (!isNaN(dateObj.getTime())) {
-                        formattedWatchedAt = dateObj.toISOString().split("T")[0] as any;
+                        formattedWatchedAt = toDateInputValue(dateObj);
                     }
                 }
 
@@ -108,7 +110,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                     rating: 0,
                     oneLiner: "",
                     content: "",
-                    watchedAt: formattedWatchedAt || new Date().toISOString().split("T")[0] as any,
+                    watchedAt: formattedWatchedAt || toDateInputValue(new Date()),
                     isMustWatch: false,
                     tags: [],
                     ...restDraft
@@ -124,6 +126,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
     useEffect(() => {
         if (isEditMode || !movie?.id) return;
 
+        // eslint-disable-next-line react-hooks/incompatible-library
         const subscription = watch((value) => {
             // Clear existing timer if values change before timeout
             if (draftTimerRef.current) {
@@ -133,7 +136,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
             // Set new timer
             draftTimerRef.current = setTimeout(() => {
                 if (movie.id) {
-                    setDraft(movie.id, value as any);
+                    setDraft(movie.id, value as Partial<ReviewFormInputValues>);
                 }
             }, 2000); // Increased from 1000ms to 2000ms to reduce store updates
         });
@@ -156,7 +159,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
             if (intVal !== i) setIntVal(i);
             if (decVal !== d) setDecVal(d);
         }
-    }, [ratingValue]); // Remove intVal/decVal dependancy to avoid loops if we add them to dep array, but simple useEffect is safe.
+    }, [ratingValue, intVal, decVal]);
 
     // Fetch details (Director) and Tags on mount
     useEffect(() => {
@@ -176,7 +179,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
 
             try {
                 const [movieData, tagRes] = await Promise.all([
-                    shouldFetchDirector ? getMovieDetails(movie!.id) : Promise.resolve(null),
+                    shouldFetchDirector && movie ? getMovieDetails(movie.id) : Promise.resolve(null),
                     shouldFetchTags ? getTagsAction() : Promise.resolve(null)
                 ]);
 
@@ -190,7 +193,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                 }
 
                 if (movieData) {
-                    const director = movieData.credits?.crew?.find((p: any) => p.job === "Director");
+                    const director = movieData.credits?.crew?.find((p) => p.job === "Director");
                     if (director) {
                         setValue("director", director.name);
                     }
@@ -205,7 +208,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
         return () => {
             isMounted = false;
         };
-    }, [movie?.id, setValue, isEditMode, initialAvailableTags]);
+    }, [movie, setValue, isEditMode, initialAvailableTags]);
 
     const handleTagDelete = (deletedTagId: string) => {
         setAvailableTags(prev => prev.filter(tag => tag.id !== deletedTagId));
@@ -489,7 +492,7 @@ export function ReviewForm({ movie, initialData, onCancel, backLink, availableTa
                             <label className="text-base font-semibold text-muted-foreground">태그</label>
                         </div>
                         <TagPicker
-                            selectedTags={watch("tags")}
+                            selectedTags={watch("tags") ?? []}
                             onTagsChange={(tags) => setValue("tags", tags)}
                             availableTags={availableTags}
                             onTagDelete={handleTagDelete}

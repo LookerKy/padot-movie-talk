@@ -20,21 +20,14 @@ export default function LoginPage() {
     const [focusedField, setFocusedField] = useState<string | null>(null);
 
     // Remember ID State
-    const [isRememberId, setIsRememberId] = useState(false);
-    const [savedId, setSavedId] = useState("");
+    const getSavedId = () =>
+        typeof window === "undefined" ? "" : localStorage.getItem("padot_remember_id") ?? "";
+    const [savedId, setSavedId] = useState(getSavedId);
+    const [isRememberId, setIsRememberId] = useState(() => getSavedId().length > 0);
 
     // Password Conversion State
     const [passwordValue, setPasswordValue] = useState("");
     const [isConverted, setIsConverted] = useState(false);
-
-    // 1. Load Saved ID on Mount
-    useEffect(() => {
-        const storedId = localStorage.getItem("padot_remember_id");
-        if (storedId) {
-            setSavedId(storedId);
-            setIsRememberId(true);
-        }
-    }, []);
 
     // 2. Handle Username Change & Save to LocalStorage
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -13,7 +13,7 @@ export function ReviewEditor({ content, onChange, placeholder }: ReviewEditorPro
         <GlassTiptapEditor
             content={content}
             onChange={onChange}
+            placeholder={placeholder}
         />
     );
 }
-

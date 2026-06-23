@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import { Noto_Sans_KR } from "next/font/google";
 import { LayoutWrapper } from "@/components/shared/layout-wrapper";
 import { AnimatedBackground } from "@/components/ui/animated-background";
 import { getSession } from "@/lib/auth";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const notoSansKr = Noto_Sans_KR({
@@ -37,13 +37,15 @@ export default async function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <div className="relative min-h-screen">
-            <AnimatedBackground />
+          <TooltipProvider>
+            <div className="relative min-h-screen">
+              <AnimatedBackground />
 
-            <LayoutWrapper user={session?.user}>
-              {children}
-            </LayoutWrapper>
-          </div>
+              <LayoutWrapper user={session?.user}>
+                {children}
+              </LayoutWrapper>
+            </div>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

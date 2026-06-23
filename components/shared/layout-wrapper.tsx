@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { FloatingNav } from "@/components/shared/floating-nav";
-import { useReviewStore } from "@/store/use-review-store"; // For Zen Mode check if needed globally, but ZenMode is local to ReviewForm usually.
+import type { SessionUser } from "@/lib/auth";
 // Zen mode is likely handled by z-index stacking as discussed.
 
-export function LayoutWrapper({ children, user }: { children: React.ReactNode; user?: any }) {
+export function LayoutWrapper({ children, user }: { children: React.ReactNode; user?: SessionUser | null }) {
     const pathname = usePathname();
     // const { data: session } = useSession(); // Removed NextAuth hook
 

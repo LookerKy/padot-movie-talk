@@ -147,7 +147,7 @@ export function AddScheduleModal({ isOpen, onClose, onSuccess, initialDate, init
                         title,
                         startDate: new Date(`${sDate}T${sTime}`),
                         endDate: new Date(`${eDate}T${eTime}`),
-                    } as any);
+                    });
                 }
             }
         }

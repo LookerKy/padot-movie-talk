@@ -30,6 +30,7 @@ npm start           # Start production server
 
 # Code Quality
 npm run lint        # Run ESLint
+npm audit           # Check dependency vulnerabilities
 
 # Database
 npx prisma migrate dev        # Run migrations in development
@@ -229,6 +230,7 @@ animate-slide-up   /* 0.5s slide up with fade */
 - Path alias `@/*` maps to project root
 - Target: ES2017
 - Zod for runtime type validation on server boundaries
+- When a Zod schema transforms or coerces values, separate form input and parsed output types with `z.input<typeof schema>` and `z.output<typeof schema>`. React Hook Form should use the input type, and Server Actions should use the parsed output type.
 
 ### Form Handling Pattern
 
@@ -237,13 +239,15 @@ animate-slide-up   /* 0.5s slide up with fade */
 export const reviewSchema = z.object({
   title: z.string().min(1, "영화 제목은 필수입니다."),
   rating: z.number().min(0).max(5).step(0.5),
+  watchedAt: z.union([z.date(), z.string().min(1)]).pipe(z.coerce.date()),
   // ... other fields
 });
 
-export type ReviewFormValues = z.infer<typeof reviewSchema>;
+export type ReviewFormInputValues = z.input<typeof reviewSchema>;
+export type ReviewFormValues = z.output<typeof reviewSchema>;
 
 // 2. Client component with react-hook-form
-const form = useForm<ReviewFormValues>({
+const form = useForm<ReviewFormInputValues, unknown, ReviewFormValues>({
   resolver: zodResolver(reviewSchema),
   defaultValues: { /* ... */ }
 });
@@ -262,6 +266,21 @@ export async function submitReview(data: ReviewFormValues) {
   redirect(`/reviews/${review.id}`);
 }
 ```
+
+## Dependency Security Updates
+
+- Treat `npm audit fix --force` as a last resort. It can install versions outside the stated dependency range or introduce breaking framework upgrades.
+- Prefer targeted dependency updates in `package.json`, then regenerate `package-lock.json` with `npm install`.
+- If the vulnerable package is transitive and the parent package has no safe direct update yet, use npm `overrides` narrowly and document why.
+- After dependency changes, verify all three:
+  ```bash
+  npm audit
+  npm run lint
+  npm run build
+  ```
+- When `npm ls` or `npm audit` disagrees with `package-lock.json`, check for stale `node_modules/.package-lock.json`. Removing or refreshing that hidden lockfile can be required before `node_modules` reflects the lockfile correctly.
+- For this project, keep Next.js and `eslint-config-next` on matching minor/patch versions.
+- For Next.js 16 with Turbopack in this workspace, keep `next.config.ts` `turbopack.root` explicit to avoid workspace-root misdetection from parent lockfiles.
 
 ### Image Optimization
 

@@ -1,49 +1,36 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { changePasswordAction } from "@/app/actions/auth";
+import { changePasswordAction, ChangePasswordState } from "@/app/actions/auth";
 import { Loader2, KeyRound, CheckCircle2 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { convertHangulToEnglish } from "@/lib/hangul-utils";
 
-const initialState: FormState = {
+const EMPTY_FORM = {
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+};
+
+const initialState: ChangePasswordState = {
     error: undefined,
     success: false
 };
 
-interface FormState {
-    error?: string | {
-        currentPassword?: string[];
-        newPassword?: string[];
-        confirmPassword?: string[];
-    };
-    success?: boolean;
-}
-
-
-
 export function PasswordChangeForm() {
-    const [state, action, isPending] = useActionState<FormState, FormData>(changePasswordAction, initialState);
     const formRef = useRef<HTMLFormElement>(null);
-
-    // State for controlled inputs to handle auto-conversion
-    const [formData, setFormData] = useState({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
-    });
-
-    useEffect(() => {
-        if (state?.success && formRef.current) {
-            formRef.current.reset();
-            // Reset local state as well
-            setFormData({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: ""
-            });
-        }
-    }, [state?.success]);
+    const [formData, setFormData] = useState(EMPTY_FORM);
+    const [state, action, isPending] = useActionState<ChangePasswordState, FormData>(
+        async (prevState, submittedFormData) => {
+            const result = await changePasswordAction(prevState, submittedFormData);
+            if (result.success) {
+                formRef.current?.reset();
+                setFormData(EMPTY_FORM);
+            }
+            return result;
+        },
+        initialState
+    );
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

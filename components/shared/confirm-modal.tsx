@@ -1,7 +1,6 @@
 "use client";
 
 import { X, AlertTriangle } from "lucide-react";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ConfirmModalProps {
@@ -27,18 +26,7 @@ export function ConfirmModal({
     isDestructive = false,
     isLoading = false
 }: ConfirmModalProps) {
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        if (isOpen) {
-            setIsVisible(true);
-        } else {
-            const timer = setTimeout(() => setIsVisible(false), 300);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
-
-    if (!isVisible) return null;
+    if (!isOpen) return null;
 
     return (
         <div className={cn(

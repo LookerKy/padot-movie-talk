@@ -5,12 +5,20 @@ import { login, logout, getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-// Force TS re-check
 
 const loginSchema = z.object({
-    username: z.string().min(1, "Username is required"),
-    password: z.string().min(1, "Password is required"),
+    username: z.string().min(1, "ID를 입력해주세요"),
+    password: z.string().min(1, "올바른 비밀번호를 입력해주세요"),
 });
+
+export interface ChangePasswordState {
+    error?: string | {
+        currentPassword?: string[];
+        newPassword?: string[];
+        confirmPassword?: string[];
+    };
+    success?: boolean;
+}
 
 export interface LoginState {
     error?: string;
@@ -24,25 +32,23 @@ export interface LoginState {
 }
 
 export async function loginAction(prevState: LoginState, formData: FormData): Promise<LoginState> {
-    const username = formData.get("username") as string;
-    const password = formData.get("password") as string;
+    const parsed = loginSchema.safeParse({
+        username: formData.get("username"),
+        password: formData.get("password"),
+    });
 
-    const errors: { username?: string; password?: string } = {};
-
-    if (!username || username.trim() === "") {
-        errors.username = "ID를 입력해주세요";
-    }
-
-    if (!password || password.trim() === "") {
-        errors.password = "올바른 비밀번호를 입력해주세요";
-    }
-
-    if (Object.keys(errors).length > 0) {
+    if (!parsed.success) {
+        const fieldErrors = parsed.error.flatten().fieldErrors;
         return {
-            fieldErrors: errors,
-            fields: { username }
+            fieldErrors: {
+                username: fieldErrors.username?.[0],
+                password: fieldErrors.password?.[0],
+            },
+            fields: { username: String(formData.get("username") ?? "") }
         };
     }
+
+    const { username, password } = parsed.data;
 
     try {
         const user = await prisma.user.findUnique({
@@ -96,7 +102,7 @@ const changePasswordSchema = z.object({
     path: ["confirmPassword"],
 });
 
-export async function changePasswordAction(prevState: any, formData: FormData) {
+export async function changePasswordAction(_prevState: ChangePasswordState, formData: FormData): Promise<ChangePasswordState> {
     try {
         const session = await getSession();
         if (!session || !session.user) {

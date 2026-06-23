@@ -5,7 +5,6 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
 import { TextStyle } from "@tiptap/extension-text-style"
-import UnderlineExtension from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
 import { FontSize } from "./extensions/font-size"
 import { PreserveMarks } from "./extensions/preserve-marks"
@@ -73,9 +72,10 @@ const ToolbarButton = ({ onClick, isActive, children, title }: ToolbarButtonProp
 interface GlassTiptapEditorProps {
     content: string
     onChange: (content: string) => void
+    placeholder?: string
 }
 
-const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEditorProps) => {
+const GlassTiptapEditor = ({ content: initialContent, onChange, placeholder = " " }: GlassTiptapEditorProps) => {
     const [activeFontSize, setActiveFontSize] = useState("24px")
     // 사용자가 마지막으로 "설정한" 폰트 사이즈 (구조 변경 시 복원용)
     const [userSetFontSize, setUserSetFontSize] = useState("24px")
@@ -85,11 +85,9 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
     const lastKnownFontSizeRef = React.useRef("24px")
 
     // 플랫폼 감지 (Mac 여부)
-    const [isMac, setIsMac] = useState(false)
-
-    useEffect(() => {
-        setIsMac(navigator.platform.toUpperCase().indexOf('MAC') >= 0)
-    }, [])
+    const [isMac] = useState(() =>
+        typeof navigator !== "undefined" && navigator.platform.toUpperCase().indexOf('MAC') >= 0
+    )
 
     const modifier = isMac ? "⌘" : "Ctrl"
     const modifierKey = isMac ? "Cmd" : "Ctrl"
@@ -110,7 +108,7 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                 },
             }),
             Placeholder.configure({
-                placeholder: " ",
+                placeholder,
                 emptyEditorClass:
                     "before:content-[attr(data-placeholder)] before:text-white/40 before:float-left before:pointer-events-none",
             }),
@@ -252,37 +250,6 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
         { label: "40px", value: "40px" },
     ]
 
-    // 🔧 공통 마크 보존 래퍼 함수
-    // 구조 변경 시 fontSize와 textAlign을 자동으로 보존
-    const withMarkPreservation = useCallback((structuralChange: () => void) => {
-        if (!editor) return
-
-        // 1. 현재 스타일 캡처
-        // userSetFontSize: 사용자가 명시적으로 설정한 폰트 (빈 블록 문제 해결)
-        const sizeToRestore = userSetFontSize;
-        const currentTextAlign = editor.isActive({ textAlign: 'center' }) ? 'center'
-            : editor.isActive({ textAlign: 'right' }) ? 'right'
-                : 'left';
-
-        // 2. 구조 변경 실행
-        structuralChange()
-
-        // 3. 비동기 마크 복원
-        setTimeout(() => {
-            if (!editor || editor.isDestroyed) return;
-
-            const { from, to } = editor.state.selection;
-
-            editor.chain()
-                .focus()
-                .selectParentNode() // 블록 전체 선택
-                .setFontSize(sizeToRestore) // 폰트 사이즈 복원
-                .setTextAlign(currentTextAlign) // 정렬 복원
-                .setTextSelection({ from, to }) // 커서 위치 복원
-                .run()
-        }, 10)
-    }, [editor, userSetFontSize])
-
     const setFontSize = (size: string) => {
         // 사용자가 설정한 폰트 사이즈 저장
         setUserSetFontSize(size)
@@ -422,12 +389,8 @@ const GlassTiptapEditor = ({ content: initialContent, onChange }: GlassTiptapEdi
                 editor.isActive('blockquote');
 
             if (!isInStructuralBlock && activeFontSize) {
-                setUserSetFontSize(activeFontSize);
                 userSetFontSizeRef.current = activeFontSize;
             }
-
-            // editor.storage에 저장 (PreserveMarks extension에서 접근)
-            (editor.storage as any).userSetFontSize = userSetFontSize;
         }
     }, [editor, activeFontSize, userSetFontSize])
 
