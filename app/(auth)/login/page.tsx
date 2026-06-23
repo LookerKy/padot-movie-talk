@@ -20,14 +20,33 @@ export default function LoginPage() {
     const [focusedField, setFocusedField] = useState<string | null>(null);
 
     // Remember ID State
-    const getSavedId = () =>
-        typeof window === "undefined" ? "" : localStorage.getItem("padot_remember_id") ?? "";
-    const [savedId, setSavedId] = useState(getSavedId);
-    const [isRememberId, setIsRememberId] = useState(() => getSavedId().length > 0);
+    const [isRememberLoaded, setIsRememberLoaded] = useState(false);
+    const [isRememberId, setIsRememberId] = useState(false);
+    const [savedId, setSavedId] = useState("");
 
     // Password Conversion State
     const [passwordValue, setPasswordValue] = useState("");
     const [isConverted, setIsConverted] = useState(false);
+
+    // 1. Load Saved ID on Mount
+    useEffect(() => {
+        let isActive = true;
+
+        queueMicrotask(() => {
+            if (!isActive) return;
+
+            const storedId = localStorage.getItem("padot_remember_id");
+            if (storedId) {
+                setSavedId(storedId);
+                setIsRememberId(true);
+            }
+            setIsRememberLoaded(true);
+        });
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     // 2. Handle Username Change & Save to LocalStorage
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,12 +55,14 @@ export default function LoginPage() {
 
     // Save/Remove on Checkbox Toggle or Blur
     useEffect(() => {
+        if (!isRememberLoaded) return;
+
         if (isRememberId) {
             localStorage.setItem("padot_remember_id", savedId);
         } else {
             localStorage.removeItem("padot_remember_id");
         }
-    }, [isRememberId, savedId]);
+    }, [isRememberLoaded, isRememberId, savedId]);
 
 
     // 3. Handle Password Change (Auto Convert Hangul)

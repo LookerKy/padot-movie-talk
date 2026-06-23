@@ -198,20 +198,24 @@ export const FloatingNav = React.memo(function FloatingNav({ user }: FloatingNav
 
                     {/* 3. Theme Toggle (Moved to End) */}
                     <button
+                        type="button"
                         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                        className="relative w-14 h-7 rounded-full bg-secondary/50 border border-border/50 shadow-inner flex items-center px-1 focus:outline-none focus-visible:ring-0 hover:border-border transition-colors group"
+                        aria-label="테마 전환"
+                        className="relative w-14 h-7 rounded-full bg-secondary/50 border border-border/50 shadow-inner flex items-center px-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 hover:border-border transition-colors group"
                     >
                         {/* Icons Background */}
-                        <div className="absolute inset-0 flex items-center justify-between px-2 text-muted-foreground">
-                            <Sun size={12} className="transition-all duration-300 opacity-100 text-yellow-500 dark:dark:text-yellow-600" />
-                            <Moon size={12} className="transition-all duration-300 text-slate-700 dark:opacity-100 dark:text-padot-blue-300" />
+                        <div className="absolute inset-0 flex items-center justify-between px-2.5 text-muted-foreground">
+                            <Sun size={12} className="text-yellow-500/60 transition-all duration-300 dark:text-yellow-500/90" aria-hidden="true" />
+                            <Moon size={12} className="text-slate-600/70 transition-all duration-300 dark:text-padot-blue-300/60" aria-hidden="true" />
                         </div>
                         {/* Moving Thumb */}
                         <div
-                            className="absolute left-1 w-5 h-5 bg-background rounded-full shadow-sm border border-border/20 z-10 flex items-center justify-center transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] dark:translate-x-[28px]"
+                            className="absolute left-1 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-border/20 bg-background text-yellow-500 shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] dark:translate-x-[28px] dark:text-padot-blue-300"
                         >
+                            <Sun size={13} className="transition-all duration-300 dark:hidden" aria-hidden="true" />
+                            <Moon size={13} className="hidden transition-all duration-300 dark:block" aria-hidden="true" />
                         </div>
-                        <span className="sr-only">Toggle theme</span>
+                        <span className="sr-only">테마 전환</span>
                     </button>
 
                     {/* Mobile Menu Toggle */}
